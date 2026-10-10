@@ -21,7 +21,8 @@ until each dot is calibrated.
 ```text
 magneto_cell/magneto_cell.ino   Arduino glue: servos, serial port, EEPROM
 magneto_cell/cell_core.*        All the logic, plain C++ (also built on a computer)
-servo_test/servo_test.ino       Standalone movement test for the six servos
+one_servo_test/one_servo_test.ino  Slow sweep of a single servo on D2
+servo_test/servo_test.ino       Slow sweep of all six servos together
 test/test_core.cpp              Host tests: make test
 sim/cell_sim.cpp                The firmware on stdin/stdout: make sim
 ```
@@ -58,6 +59,11 @@ Dots as the reader sees them from above:
   servos starting at once.
 
 ## Servo test first
+
+Start with one servo. `one_servo_test/one_servo_test.ino` sweeps a single
+servo on D2 (dot 1's pin) slowly back and forth. Wire just that servo: signal
+to D2, ground to GND and the supply's negative, power to the supply's
+positive. When it sweeps smoothly, move on to all six with the sketch below.
 
 `servo_test/servo_test.ino` checks the wiring and power before the real
 firmware goes on. It uses the same pins, needs no input or calibration, and
