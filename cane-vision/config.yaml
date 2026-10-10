@@ -6,15 +6,17 @@ cane:
   reach: 0.06     # max box distance from the tip, fraction of frame diagonal
 
 detector:
-  # COCO-pretrained to start. On the Jetson, export once to TensorRT:
-  #   yolo export model=yolo11n.pt format=engine half=True
-  # then set model: yolo11n.engine
-  model: yolo11n.pt
-  confidence: 0.4
+  # YOLO-World: an open-vocabulary detector that finds whatever names are
+  # listed in vocabulary.txt, not just COCO's 80 classes.
+  model: yolov8s-worldv2.pt     # m/l/x-worldv2 are more accurate but slower
+  vocabulary: vocabulary.txt    # a file (one name per line) or an inline list
+  confidence: 0.25              # open-vocabulary scores run lower than COCO's
   image_size: 640
-  # Open-vocabulary option (YOLO-World): set model to e.g. yolov8s-worldv2.pt
-  # and list the objects a cane actually meets.
-  # vocabulary: [door, stairs, chair, table, trash can, pole, wall, bench, person]
+  # For the Jetson, bake the vocabulary in once, then point at the result
+  # and remove `vocabulary` (no CLIP text encoding at startup):
+  #   python -m cane_vision.bake --export engine
+  #   model: models/cane-world.engine
+  # The original COCO-only model still works: model: yolo11n.pt, no vocabulary.
 
 trigger:
   mode: key            # key = SPACE taps; dwell = resting on an object taps
@@ -44,3 +46,4 @@ speech:
 labels:
   renames: {}          # extra overrides, e.g. {"bench": "seat"}
   ignore: []           # classes to never announce
+  min_confidence: {}   # per-class thresholds for noisy names, e.g. {mailbox: 0.45}

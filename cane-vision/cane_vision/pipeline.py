@@ -22,7 +22,7 @@ import yaml
 from .braille import Timing, spell
 from .cane import Cane, select_touched
 from .cell import CellPlayer, ConsoleCell
-from .detector import Detection, Detector
+from .detector import Detection, Detector, load_vocabulary
 from .labels import LabelMap
 from .elevenlabs import ElevenLabsSpeaker, make_speaker
 
@@ -76,8 +76,18 @@ class TouchTracker:
             self._streak_announced = True
 
 
+def resolve_detector_config(det_cfg: dict, base_dir: Path) -> dict:
+    """Resolve the vocabulary file and local model paths against the config's folder."""
+    cfg = dict(det_cfg)
+    cfg["vocabulary"] = load_vocabulary(cfg.get("vocabulary"), base_dir)
+    model = cfg.get("model")
+    if model and (base_dir / model).exists():
+        cfg["model"] = str(base_dir / model)
+    return cfg
+
+
 class CaneVision:
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, base_dir: Path = Path(".")):
         cane_cfg = config.get("cane", {})
         det_cfg = config.get("detector", {})
         trig_cfg = config.get("trigger", {})
@@ -86,8 +96,10 @@ class CaneVision:
         label_cfg = config.get("labels", {})
 
         self.cane = Cane(**cane_cfg)
-        self.detector = Detector(**det_cfg)
-        self.labels = LabelMap(label_cfg.get("renames"), label_cfg.get("ignore"))
+        self.detector = Detector(**resolve_detector_config(det_cfg, base_dir))
+        self.labels = LabelMap(
+            label_cfg.get("renames"), label_cfg.get("ignore"), label_cfg.get("min_confidence")
+        )
         self.tracker = TouchTracker(
             vote_frames=trig_cfg.get("vote_frames", 5),
             dwell_frames=trig_cfg.get("dwell_frames", 8),
@@ -99,14 +111,14 @@ class CaneVision:
         self.phrase = speech_cfg.get("phrase", "{object}")
         self.speaker = make_speaker(speech_cfg)
         if isinstance(self.speaker, ElevenLabsSpeaker) and (speech_cfg.get("elevenlabs") or {}).get("prewarm"):
-            names = [n for n in self.detector.model.names.values() if self.labels.allowed(n)]
+            names = [n for n in self.detector.class_names if self.labels.allowed(n)]
             phrases = [self.phrase.format(object=self.labels(n).spoken) for n in names]
             self.speaker.tts.prewarm([self.unknown_phrase, *phrases])
         self.cell = CellPlayer(ConsoleCell())
 
     def process(self, frame) -> tuple[list[Detection], Detection | None]:
         h, w = frame.shape[:2]
-        detections = [d for d in self.detector(frame) if self.labels.allowed(d.label)]
+        detections = [d for d in self.detector(frame) if self.labels.allowed(d.label, d.confidence)]
         touched = select_touched(detections, self.cane, w, h)
         self.tracker.update(touched.label if touched else None)
         return detections, touched
@@ -121,7 +133,7 @@ class CaneVision:
         self.cell.play(spell(a.braille, self.timing))
         self.tracker.announced(label, time.monotonic())
 
-    def draw(self, frame, detections: list[Detection], touched: Detection | None) -> None:
+    def draw(self, frame, detections: list[Detection], touched: Detection | None, hint: bool = True) -> None:
         h, w = frame.shape[:2]
         for d in detections:
             hit = d is touched
@@ -134,8 +146,10 @@ class CaneVision:
         cv2.circle(frame, tip, int(self.cane.reach_px(w, h)), (0, 200, 255), 1)
         cv2.drawMarker(frame, tip, (0, 200, 255), cv2.MARKER_CROSS, 24, 2)
         self._draw_cell(frame)
-        hint = "SPACE = tap, Q = quit" if self.mode == "key" else "dwell mode, Q = quit"
-        cv2.putText(frame, hint, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        if not hint:
+            return
+        text = "SPACE = tap, Q = quit" if self.mode == "key" else "dwell mode, Q = quit"
+        cv2.putText(frame, text, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def _draw_cell(self, frame) -> None:
         """Mirror of the physical cell in the corner of the preview."""
@@ -217,7 +231,7 @@ def main() -> None:
     if args.mode:
         config.setdefault("trigger", {})["mode"] = args.mode
 
-    app = CaneVision(config)
+    app = CaneVision(config, Path(args.config).resolve().parent)
     print(f"speech: {app.speaker.engine}   trigger: {app.mode}")
     display = not args.no_display
     if Path(args.source).suffix.lower() in IMAGE_SUFFIXES:
