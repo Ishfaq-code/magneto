@@ -60,28 +60,24 @@ Dots as the reader sees them from above:
 ## Servo test first
 
 `servo_test/servo_test.ino` checks the wiring and power before the real
-firmware goes on. It uses the same pins, needs no calibration, and does no
-Braille.
+firmware goes on. It uses the same pins, needs no input or calibration, and
+does no Braille. All six servos sweep slowly together, about 40° (1300 ↔ 1700
+µs) over 2 seconds, with a 1 second rest at each end.
 
-1. Flash it (same steps as below, with `servo_test` in place of
-   `magneto_cell`). Open the Serial Monitor at 115200 baud.
-2. It moves each servo to CENTER (1500 µs) one at a time. It then loops: each
-   servo in turn swings LOW → HIGH → LOW (1300 ↔ 1700 µs, about 40°), then all
-   six swing together twice. The monitor prints which dot and pin should be
-   moving, so a swapped wire shows up straight away.
-3. Keys: `1`–`6` wiggle one servo, `a` all HIGH, `z` all LOW, `c` all CENTER,
-   `r` resume the loop.
+Flash it (same steps as below, with `servo_test` in place of `magneto_cell`).
+Optionally open the Serial Monitor at 115200 baud, where it prints `HIGH` /
+`LOW` at each end.
 
 What to look for:
 
 - **A servo doesn't move.** Check its signal pin, then its power and ground.
-- **The wrong servo moves.** The signal wires are swapped.
-- **Jitter or buzzing at rest.** The supply is weak or the ground is not shared.
-- **"servo test starting" reappears by itself, usually during "all together".**
-  The board reset because the servos pulled the supply down.
+- **Jitter or buzzing.** The supply is weak or the ground is not shared.
+- **"servo test starting" reappears by itself.** The board reset because the
+  servos pulled the supply down.
 
-The swing is a fixed 40°. Run it with the horns free or the linkages detached.
-Otherwise shrink `LOW_US`/`HIGH_US` first, so no pin is pushed against its stop.
+Run it with the horns free or the linkages detached. Otherwise narrow
+`LOW_US`/`HIGH_US` first so no pin is pushed against its stop. `STEP_US` and
+`STEP_MS` set the speed.
 
 ## Flash
 
