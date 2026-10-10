@@ -1,0 +1,76 @@
+# Objects the detector looks for (YOLO-World open vocabulary).
+# One per line; the name is also what gets spoken and spelled, so use short
+# everyday words. Blank lines and lines starting with # are ignored.
+# After editing, re-run `python -m cane_vision.bake` if you use a baked model.
+#
+# Fewer, distinct names detect better than long lists of near-synonyms.
+
+# Doors, levels and walls
+door
+stairs
+curb
+wall
+fence
+gate
+railing
+pillar
+elevator
+escalator
+
+# Street furniture
+pole
+bollard
+sign
+fire hydrant
+bench
+trash can
+mailbox
+parking meter
+traffic cone
+barrier
+bus stop
+
+# Plants and ground
+tree
+bush
+planter
+
+# People, animals and vehicles
+person
+dog
+cat
+car
+bus
+truck
+bicycle
+scooter
+motorcycle
+stroller
+wheelchair
+shopping cart
+
+# Furniture
+chair
+table
+desk
+couch
+bed
+shelf
+cabinet
+counter
+
+# Kitchen and bathroom
+refrigerator
+sink
+toilet
+oven
+microwave
+
+# Things on the floor or in the way
+box
+suitcase
+backpack
+bag
+bucket
+ladder
+cable

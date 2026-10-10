@@ -1,5 +1,6 @@
-.venv/
+.venv
 *.pt
 *.engine
 *.onnx
 .pytest_cache/
+models/

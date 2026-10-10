@@ -56,3 +56,22 @@ def test_dwell_streak_resets_on_change():
     for lbl in ["chair", "chair", None, "chair"]:
         t.update(lbl)
     assert t.dwell_ready(0.0) is None
+
+
+def test_vocabulary_file_skips_comments_blanks_and_duplicates(tmp_path):
+    from cane_vision.detector import load_vocabulary
+
+    (tmp_path / "vocab.txt").write_text("# header\ndoor\n\n  stairs \n# note\ndoor\n")
+    assert load_vocabulary("vocab.txt", tmp_path) == ["door", "stairs"]
+    assert load_vocabulary(["door", " ", "pole"]) == ["door", "pole"]
+    assert load_vocabulary(None) is None
+
+
+def test_shipped_vocabulary_loads():
+    from pathlib import Path
+
+    from cane_vision.detector import load_vocabulary
+
+    names = load_vocabulary("vocabulary.txt", Path(__file__).resolve().parents[1])
+    assert {"door", "stairs", "curb", "pole", "chair"} <= set(names)
+    assert len(names) == len(set(names))
