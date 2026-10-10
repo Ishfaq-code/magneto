@@ -38,6 +38,7 @@ exports/
   servo-reset/           Five individual draft 3MFs and concept assembly
   readable/              Research concept assembly 3MF
 scripts/                 Local server, CAD builders, 3MF export and checks
+cane-vision/             Cane camera: YOLO object detection, speech and Braille spelling
 docs/                    Design assumptions and provenance
 AGENTS.md                Brief guidance for coding agents
 ```
@@ -75,3 +76,7 @@ Three.js is vendored under its MIT license in `web/vendor/THREE-LICENSE.txt`. Ma
 ## Learning companion design preview
 
 Open `/learn/` on the local server (for example http://127.0.0.1:8094/learn/ after running `python3 scripts/serve.py --port 8094`). The mobile-first static companion includes four demo activities, browser-local learning progress, optional browser speech, and clearly unintegrated camera, Braille, and voice-input connectors. Source lives in `web/learn/`; design and audit notes are in `docs/companion-design.txt`.
+
+## Cane vision
+
+`cane-vision/` is a separate Python component. A camera fixed to the cane sees what the tip touches. YOLO identifies the object, a voice says what it is (ElevenLabs with a local fallback), and the word is spelled letter by letter on the single six-dot cell. Touch sensing and the servo cell are not connected yet: a key press stands in for a tap, and the cell is shown in the terminal and preview window. See [cane-vision/README.md](cane-vision/README.md).
