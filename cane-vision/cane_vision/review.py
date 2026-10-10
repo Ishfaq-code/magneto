@@ -59,6 +59,7 @@ def main() -> None:
     config_path = Path(args.config).resolve()
     config = yaml.safe_load(config_path.read_text()) or {}
     config.setdefault("speech", {})["engine"] = "print"  # review is silent
+    config["cell"] = {"port": None}  # and leaves the physical cell alone
     app = CaneVision(config, config_path.parent)
 
     args.out.mkdir(parents=True, exist_ok=True)
