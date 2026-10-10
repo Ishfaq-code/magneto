@@ -86,4 +86,18 @@ that gets spoken and spelled.
   `confidence` to about 0.4. It's faster but can't see doors, stairs, poles or
   curbs.
 - Open-vocabulary scores run lower than COCO's, so `confidence` defaults to
-  0.25. Raise it if you get false announcements.
+  0.25. Raise it if you get false announcements, or raise just the noisy
+  names with `labels.min_confidence` (e.g. `{mailbox: 0.45}`).
+
+## Tune on real footage
+
+Record photos or video from the cane camera, then:
+
+```bash
+.venv/bin/python -m cane_vision.review photos/ walk.mp4 --out review/
+```
+
+It writes an annotated copy of each image (and every 15th video frame),
+`review.csv` with what would be announced at the tip, and a per-class
+min/median/max score table. Use it to set `cane.tip_x`/`tip_y`, the confidence
+thresholds and `vocabulary.txt`.

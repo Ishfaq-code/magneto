@@ -46,3 +46,4 @@ speech:
 labels:
   renames: {}          # extra overrides, e.g. {"bench": "seat"}
   ignore: []           # classes to never announce
+  min_confidence: {}   # per-class thresholds for noisy names, e.g. {mailbox: 0.45}

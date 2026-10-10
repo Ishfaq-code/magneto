@@ -75,3 +75,13 @@ def test_shipped_vocabulary_loads():
     names = load_vocabulary("vocabulary.txt", Path(__file__).resolve().parents[1])
     assert {"door", "stairs", "curb", "pole", "chair"} <= set(names)
     assert len(names) == len(set(names))
+
+
+def test_per_class_min_confidence():
+    from cane_vision.labels import LabelMap
+
+    labels = LabelMap(ignore=["cat"], min_confidence={"mailbox": 0.45})
+    assert labels.allowed("mailbox", 0.5)
+    assert not labels.allowed("mailbox", 0.37)
+    assert labels.allowed("door", 0.26)
+    assert not labels.allowed("cat", 0.99)

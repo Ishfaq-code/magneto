@@ -97,7 +97,9 @@ class CaneVision:
 
         self.cane = Cane(**cane_cfg)
         self.detector = Detector(**resolve_detector_config(det_cfg, base_dir))
-        self.labels = LabelMap(label_cfg.get("renames"), label_cfg.get("ignore"))
+        self.labels = LabelMap(
+            label_cfg.get("renames"), label_cfg.get("ignore"), label_cfg.get("min_confidence")
+        )
         self.tracker = TouchTracker(
             vote_frames=trig_cfg.get("vote_frames", 5),
             dwell_frames=trig_cfg.get("dwell_frames", 8),
@@ -116,7 +118,7 @@ class CaneVision:
 
     def process(self, frame) -> tuple[list[Detection], Detection | None]:
         h, w = frame.shape[:2]
-        detections = [d for d in self.detector(frame) if self.labels.allowed(d.label)]
+        detections = [d for d in self.detector(frame) if self.labels.allowed(d.label, d.confidence)]
         touched = select_touched(detections, self.cane, w, h)
         self.tracker.update(touched.label if touched else None)
         return detections, touched
@@ -131,7 +133,7 @@ class CaneVision:
         self.cell.play(spell(a.braille, self.timing))
         self.tracker.announced(label, time.monotonic())
 
-    def draw(self, frame, detections: list[Detection], touched: Detection | None) -> None:
+    def draw(self, frame, detections: list[Detection], touched: Detection | None, hint: bool = True) -> None:
         h, w = frame.shape[:2]
         for d in detections:
             hit = d is touched
@@ -144,8 +146,10 @@ class CaneVision:
         cv2.circle(frame, tip, int(self.cane.reach_px(w, h)), (0, 200, 255), 1)
         cv2.drawMarker(frame, tip, (0, 200, 255), cv2.MARKER_CROSS, 24, 2)
         self._draw_cell(frame)
-        hint = "SPACE = tap, Q = quit" if self.mode == "key" else "dwell mode, Q = quit"
-        cv2.putText(frame, hint, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        if not hint:
+            return
+        text = "SPACE = tap, Q = quit" if self.mode == "key" else "dwell mode, Q = quit"
+        cv2.putText(frame, text, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def _draw_cell(self, frame) -> None:
         """Mirror of the physical cell in the corner of the preview."""
