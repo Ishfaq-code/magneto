@@ -30,6 +30,13 @@ braille:
   letter_gap_s: 0.3
   word_gap_s: 1.0
 
+# The six-servo cell: an Arduino Uno running cell-firmware/magneto_cell over
+# USB. The timing above is sent to it on connect.
+cell:
+  port: auto           # auto = first Arduino found, else console preview;
+                       # or a port like /dev/ttyACM0; null = console only
+  baud: 115200
+
 speech:
   # auto = ElevenLabs if ELEVENLABS_API_KEY is set, else the local engine.
   engine: auto         # auto | elevenlabs | say | piper | espeak-ng | print

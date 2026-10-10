@@ -19,12 +19,12 @@ from pathlib import Path
 import cv2
 import yaml
 
-from .braille import Timing, spell
+from .braille import Timing
 from .cane import Cane, select_touched
-from .cell import CellPlayer, ConsoleCell
 from .detector import Detection, Detector, load_vocabulary
 from .labels import LabelMap
 from .elevenlabs import ElevenLabsSpeaker, make_speaker
+from .serial_cell import make_cell
 
 DEFAULT_CONFIG = Path(__file__).resolve().parent.parent / "config.yaml"
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -114,7 +114,7 @@ class CaneVision:
             names = [n for n in self.detector.class_names if self.labels.allowed(n)]
             phrases = [self.phrase.format(object=self.labels(n).spoken) for n in names]
             self.speaker.tts.prewarm([self.unknown_phrase, *phrases])
-        self.cell = CellPlayer(ConsoleCell())
+        self.cell = make_cell(config.get("cell", {}), self.timing)
 
     def process(self, frame) -> tuple[list[Detection], Detection | None]:
         h, w = frame.shape[:2]
@@ -130,7 +130,7 @@ class CaneVision:
             return
         a = self.labels(label)
         self.speaker.say(self.phrase.format(object=a.spoken))
-        self.cell.play(spell(a.braille, self.timing))
+        self.cell.spell(a.braille)
         self.tracker.announced(label, time.monotonic())
 
     def draw(self, frame, detections: list[Detection], touched: Detection | None, hint: bool = True) -> None:
@@ -223,6 +223,7 @@ def main() -> None:
     parser.add_argument("--model", help="override detector.model from the config")
     parser.add_argument("--mode", choices=["key", "dwell"], help="override trigger.mode")
     parser.add_argument("--no-display", action="store_true", help="run without a preview window")
+    parser.add_argument("--cell", help="override cell.port: auto, a serial port, or none")
     args = parser.parse_args()
 
     config = yaml.safe_load(Path(args.config).read_text()) or {}
@@ -230,9 +231,12 @@ def main() -> None:
         config.setdefault("detector", {})["model"] = args.model
     if args.mode:
         config.setdefault("trigger", {})["mode"] = args.mode
+    if args.cell:
+        config.setdefault("cell", {})["port"] = args.cell
 
     app = CaneVision(config, Path(args.config).resolve().parent)
-    print(f"speech: {app.speaker.engine}   trigger: {app.mode}")
+    cell = getattr(app.cell, "port_name", "console")
+    print(f"speech: {app.speaker.engine}   trigger: {app.mode}   cell: {cell}")
     display = not args.no_display
     if Path(args.source).suffix.lower() in IMAGE_SUFFIXES:
         app.run_image(args.source, display)

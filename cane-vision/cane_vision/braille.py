@@ -75,18 +75,24 @@ def to_unicode(mask: int) -> str:
     return chr(0x2800 + (mask & ALL_UP))
 
 
+def normalize(text: str) -> str:
+    """What the cell can show: lowercase letters and single spaces.
+
+    Characters without a Grade 1 letter mapping are dropped. The Arduino
+    firmware applies the same rule to the text it is sent.
+    """
+    words = ("".join(c for c in word if c in LETTERS) for word in text.lower().split())
+    return " ".join(word for word in words if word)
+
+
 def spell(text: str, timing: Timing = Timing()) -> list[Step]:
     """Turn text into cell steps: hold each letter, clear between letters.
 
     Every letter is followed by an all-down gap so repeated letters (the two
     L's in "hello") are distinguishable. Spaces become a longer blank gap.
-    Characters without a Grade 1 letter mapping are skipped.
     """
     steps: list[Step] = []
-    for word in text.lower().split():
-        letters = [c for c in word if c in LETTERS]
-        if not letters:
-            continue
+    for letters in normalize(text).split():
         if steps:
             steps.append(Step(BLANK, timing.word_gap_s, " "))
         for i, c in enumerate(letters):

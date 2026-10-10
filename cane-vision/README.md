@@ -16,9 +16,11 @@ camera frame ─▶ YOLO ─▶ box at the cane tip ─▶ vote over last frames
   spot, or failing that the nearest box within `cane.reach`.
 - **Simulated touch.** `key` mode: press SPACE to tap. `dwell` mode: resting
   the tip on the same object for `dwell_frames` frames counts as a tap.
-- **Console cell.** Braille goes to the terminal (`⠓  dots 1,2,5`) and to a
-  cell drawn in the corner of the preview. The Arduino/servo cell can later
-  replace `ConsoleCell` in `cane_vision/cell.py` without touching the vision side.
+- **Braille cell.** With an Arduino running `../cell-firmware` plugged in, the
+  word is sent to it over USB (`cell.port: auto`) and the servos spell it.
+  Without one, Braille goes to the terminal (`⠓  dots 1,2,5`). Either way it
+  is mirrored on a cell drawn in the corner of the preview. See
+  [cell-firmware](../cell-firmware/README.md) for wiring and calibration.
 
 ## Run
 
@@ -30,6 +32,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m cane_vision --mode dwell            # webcam, rest to tap
 .venv/bin/python -m cane_vision --source photo.jpg      # single image
 .venv/bin/python -m cane_vision --source clip.mp4 --no-display
+.venv/bin/python -m cane_vision --cell none             # ignore a connected Arduino
 .venv/bin/python -m pytest                              # tests
 ```
 

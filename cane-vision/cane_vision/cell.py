@@ -1,8 +1,8 @@
-"""Plays Braille steps on the single cell in a background thread.
+"""Plays Braille steps on a simulated cell in a background thread.
 
-The cell itself is a pluggable sink: anything with `show(mask)`. For now the
-only sink is the console preview; the Arduino/servo sink drops in later
-without touching the vision pipeline.
+The cell itself is a pluggable sink: anything with `show(mask)`; here the
+console preview. The real cell is `serial_cell.SerialCell`, which has the
+same interface but lets the Arduino do the timing.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 from typing import Protocol
 
-from .braille import BLANK, Step, to_unicode
+from .braille import BLANK, Step, Timing, spell, to_unicode
 
 
 class CellSink(Protocol):
@@ -26,8 +26,9 @@ class ConsoleCell:
 class CellPlayer:
     """Spells one word at a time; a new word interrupts the current one."""
 
-    def __init__(self, sink: CellSink):
+    def __init__(self, sink: CellSink, timing: Timing = Timing()):
         self.sink = sink
+        self.timing = timing
         self.mask = BLANK
         self.char = ""
         self._cancel = threading.Event()
@@ -41,6 +42,9 @@ class CellPlayer:
     def wait(self) -> None:
         if self._thread:
             self._thread.join()
+
+    def spell(self, text: str) -> None:
+        self.play(spell(text, self.timing))
 
     def play(self, steps: list[Step]) -> None:
         with self._lock:
