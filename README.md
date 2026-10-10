@@ -38,6 +38,8 @@ exports/
   servo-reset/           Five individual draft 3MFs and concept assembly
   readable/              Research concept assembly 3MF
 scripts/                 Local server, CAD builders, 3MF export and checks
+cane-vision/             Cane camera: YOLO object detection, speech and Braille spelling
+cell-firmware/           Arduino Uno sketch that drives the six dot servos
 docs/                    Design assumptions and provenance
 AGENTS.md                Brief guidance for coding agents
 ```
@@ -75,3 +77,11 @@ Three.js is vendored under its MIT license in `web/vendor/THREE-LICENSE.txt`. Ma
 ## Learning companion design preview
 
 Open `/learn/` on the local server (for example http://127.0.0.1:8094/learn/ after running `python3 scripts/serve.py --port 8094`). The mobile-first static companion includes four demo activities, browser-local learning progress, optional browser speech, and clearly unintegrated camera, Braille, and voice-input connectors. Source lives in `web/learn/`; design and audit notes are in `docs/companion-design.txt`.
+
+## Cane vision
+
+`cane-vision/` is a separate Python component. A camera fixed to the cane sees what the tip touches. YOLO identifies the object, a voice says what it is (ElevenLabs with a local fallback), and the word is spelled letter by letter on the single six-dot cell. Touch sensing is not connected yet, so a key press stands in for a tap. The word goes to the servo cell when its Arduino is plugged in, and to the terminal and preview window otherwise. See [cane-vision/README.md](cane-vision/README.md).
+
+## Braille cell firmware
+
+`cell-firmware/` is the Arduino Uno sketch for the six-servo cell, one servo per dot on D2–D7. The board stores the Braille table, the letter timing and each servo's calibrated up/down positions. Any host sends `SPELL chair` over USB serial and the board spells it letter by letter, clearing between letters. The logic is plain C++, so it has host tests and a simulator. It compiles for the Uno but has not yet been run on real servos. See [cell-firmware/README.md](cell-firmware/README.md) for wiring, calibration and the command list.

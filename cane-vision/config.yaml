@@ -1,0 +1,56 @@
+# Predefined cane: camera rigidly mounted on the shaft, angled forward and
+# down, so the tip always lands at the same spot in the image.
+cane:
+  tip_x: 0.5      # fraction of frame width
+  tip_y: 0.85     # fraction of frame height (0 = top)
+  reach: 0.06     # max box distance from the tip, fraction of frame diagonal
+
+detector:
+  # YOLO-World: an open-vocabulary detector that finds whatever names are
+  # listed in vocabulary.txt, not just COCO's 80 classes.
+  model: yolov8s-worldv2.pt     # m/l/x-worldv2 are more accurate but slower
+  vocabulary: vocabulary.txt    # a file (one name per line) or an inline list
+  confidence: 0.25              # open-vocabulary scores run lower than COCO's
+  image_size: 640
+  # For the Jetson, bake the vocabulary in once, then point at the result
+  # and remove `vocabulary` (no CLIP text encoding at startup):
+  #   python -m cane_vision.bake --export engine
+  #   model: models/cane-world.engine
+  # The original COCO-only model still works: model: yolo11n.pt, no vocabulary.
+
+trigger:
+  mode: key            # key = SPACE taps; dwell = resting on an object taps
+  vote_frames: 5       # frames voted over when a tap happens
+  dwell_frames: 8      # consecutive frames on one object to count as a tap
+  cooldown_s: 4.0      # don't re-announce the same object within this time
+  unknown_phrase: unknown
+
+braille:
+  letter_hold_s: 3.0
+  letter_gap_s: 0.3
+  word_gap_s: 1.0
+
+# The six-servo cell: an Arduino Uno running cell-firmware/magneto_cell over
+# USB. The timing above is sent to it on connect.
+cell:
+  port: auto           # auto = first Arduino found, else console preview;
+                       # or a port like /dev/ttyACM0; null = console only
+  baud: 115200
+
+speech:
+  # auto = ElevenLabs if ELEVENLABS_API_KEY is set, else the local engine.
+  engine: auto         # auto | elevenlabs | say | piper | espeak-ng | print
+  phrase: "{object}"   # e.g. "touched {object}"; short is faster to hear
+  # piper_model: /path/to/en_US-lessac-medium.onnx   # local / fallback voice
+  elevenlabs:
+    voice_id: JBFqnCBsd6RMkjVDRZzb   # any voice ID from your ElevenLabs library
+    model_id: eleven_flash_v2_5      # fastest; eleven_v4_turbo is more expressive
+    # voice_settings: {stability: 0.5, similarity_boost: 0.75, speed: 1.0}
+    timeout_s: 4.0                   # then fall back to the local voice
+    prewarm: false                   # cache every class name at startup (uses credits once)
+    # cache_dir: ~/.cache/cane-vision/elevenlabs
+
+labels:
+  renames: {}          # extra overrides, e.g. {"bench": "seat"}
+  ignore: []           # classes to never announce
+  min_confidence: {}   # per-class thresholds for noisy names, e.g. {mailbox: 0.45}
