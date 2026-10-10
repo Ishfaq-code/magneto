@@ -33,14 +33,17 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m pytest                              # tests
 ```
 
-The first run downloads `yolo11n.pt` (COCO, 80 classes).
+The first run downloads `yolov8s-worldv2.pt` and the CLIP text encoder
+(Ultralytics installs it automatically).
 
 ## Jetson Orin Nano
 
 1. Install PyTorch/torchvision builds for your JetPack version (from NVIDIA),
    then `pip install ultralytics`.
-2. Export once to TensorRT: `yolo export model=yolo11n.pt format=engine half=True`
-3. Set `detector.model: yolo11n.engine` in `config.yaml`.
+2. Bake the vocabulary and export to TensorRT on the Jetson itself:
+   `.venv/bin/python -m cane_vision.bake --export engine --half`
+3. In `config.yaml`, set `detector.model: models/cane-world.engine` and
+   remove `detector.vocabulary`.
 4. Speech: ElevenLabs if `ELEVENLABS_API_KEY` is set (see below). For the
    offline voice/fallback, install Piper and a voice and set
    `speech.piper_model`; otherwise `espeak-ng` is used.
@@ -64,8 +67,23 @@ export ELEVENLABS_API_KEY=sk_...
   model is `eleven_flash_v2_5` (fastest); `eleven_v4_turbo` is more expressive.
 - Playback uses `afplay` on macOS and `aplay` on the Jetson.
 
-## Beyond COCO
+## Vocabulary (YOLO-World)
 
-COCO has no door, stairs, wall, pole, curb or trash can. To add them without
-training, set `detector.model` to a YOLO-World checkpoint (e.g.
-`yolov8s-worldv2.pt`) and list the objects under `detector.vocabulary`.
+The detector is YOLO-World, an open-vocabulary model: it finds whatever names
+are listed in `vocabulary.txt` instead of COCO's fixed 80 classes. The list
+covers what a cane runs into: doors, stairs, curbs, poles, bollards, trash
+cans, fences, furniture, vehicles and people. The name you list is the word
+that gets spoken and spelled.
+
+- **Edit `vocabulary.txt`** to add or remove objects; no training needed.
+  Keep names short and distinct. Near-synonyms ("pole", "post", "lamp post")
+  compete with each other, and a longer list lowers every score somewhat.
+- **Bake it** for faster startup and deployment:
+  `python -m cane_vision.bake` writes `models/cane-world.pt` with the names
+  built in (add `--export onnx` or `--export engine`). Point
+  `detector.model` at it and remove `detector.vocabulary`.
+- **COCO only:** set `model: yolo11n.pt`, remove `vocabulary` and raise
+  `confidence` to about 0.4. It's faster but can't see doors, stairs, poles or
+  curbs.
+- Open-vocabulary scores run lower than COCO's, so `confidence` defaults to
+  0.25. Raise it if you get false announcements.

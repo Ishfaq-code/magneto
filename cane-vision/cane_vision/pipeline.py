@@ -22,7 +22,7 @@ import yaml
 from .braille import Timing, spell
 from .cane import Cane, select_touched
 from .cell import CellPlayer, ConsoleCell
-from .detector import Detection, Detector
+from .detector import Detection, Detector, load_vocabulary
 from .labels import LabelMap
 from .elevenlabs import ElevenLabsSpeaker, make_speaker
 
@@ -76,8 +76,18 @@ class TouchTracker:
             self._streak_announced = True
 
 
+def resolve_detector_config(det_cfg: dict, base_dir: Path) -> dict:
+    """Resolve the vocabulary file and local model paths against the config's folder."""
+    cfg = dict(det_cfg)
+    cfg["vocabulary"] = load_vocabulary(cfg.get("vocabulary"), base_dir)
+    model = cfg.get("model")
+    if model and (base_dir / model).exists():
+        cfg["model"] = str(base_dir / model)
+    return cfg
+
+
 class CaneVision:
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, base_dir: Path = Path(".")):
         cane_cfg = config.get("cane", {})
         det_cfg = config.get("detector", {})
         trig_cfg = config.get("trigger", {})
@@ -86,7 +96,7 @@ class CaneVision:
         label_cfg = config.get("labels", {})
 
         self.cane = Cane(**cane_cfg)
-        self.detector = Detector(**det_cfg)
+        self.detector = Detector(**resolve_detector_config(det_cfg, base_dir))
         self.labels = LabelMap(label_cfg.get("renames"), label_cfg.get("ignore"))
         self.tracker = TouchTracker(
             vote_frames=trig_cfg.get("vote_frames", 5),
@@ -99,7 +109,7 @@ class CaneVision:
         self.phrase = speech_cfg.get("phrase", "{object}")
         self.speaker = make_speaker(speech_cfg)
         if isinstance(self.speaker, ElevenLabsSpeaker) and (speech_cfg.get("elevenlabs") or {}).get("prewarm"):
-            names = [n for n in self.detector.model.names.values() if self.labels.allowed(n)]
+            names = [n for n in self.detector.class_names if self.labels.allowed(n)]
             phrases = [self.phrase.format(object=self.labels(n).spoken) for n in names]
             self.speaker.tts.prewarm([self.unknown_phrase, *phrases])
         self.cell = CellPlayer(ConsoleCell())
@@ -217,7 +227,7 @@ def main() -> None:
     if args.mode:
         config.setdefault("trigger", {})["mode"] = args.mode
 
-    app = CaneVision(config)
+    app = CaneVision(config, Path(args.config).resolve().parent)
     print(f"speech: {app.speaker.engine}   trigger: {app.mode}")
     display = not args.no_display
     if Path(args.source).suffix.lower() in IMAGE_SUFFIXES:
