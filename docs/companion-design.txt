@@ -1,0 +1,54 @@
+MAGNETO LEARNING COMPANION — DESIGN PREVIEW
+
+Scope: static /learn/ companion; existing CAD viewer remains at /. No framework,
+cloud service, camera capture, YOLO, microphone or hardware communication.
+
+Audience: children learning tactile literacy, with instructors and grown-ups.
+Product voice: short, encouraging instructions; curiosity over competition.
+Visual system: warm paper #faf9f5, deep teal #184f47, sunny yellow #f3cd61,
+peach and lavender for activity recognition. Large text, six-dot letter motifs,
+consistent line icons, generous spacing and 48px primary controls. Local Avenir
+font stack avoids remote font requests; exact typography varies by device.
+Mobile: single-column activity list and persistent labeled bottom navigation.
+Desktop: sidebar and larger exploration feature. Reduced-motion alternative
+removes hover movement; state changes retain text and color feedback.
+
+Routes: home, explore, guess, match, practice, progress, connect.
+Practice covers the uncontracted English alphabet. Progress uses only the
+magneto-learning-v1 key. Sample answers count as demo progress. No existing
+viewer storage keys are read or changed. Blocked storage falls back to memory.
+
+Integration boundary: web/learn/connectors.js. camera.connect and braille.write
+return explicit disconnected results. Future adapters may deliver objectSelected
+and ready events. Announce physical readiness only after actual device acknowledgement.
+Voice input is an unintegrated placeholder. Browser text-to-speech is optional;
+audio output quality and availability depend on the browser and operating system.
+
+IMPECCABLE-GUIDED AUDIT — 2026-10-10
+References read:
+https://github.com/pbakaus/impeccable/blob/main/skill/SKILL.src.md
+https://github.com/pbakaus/impeccable/blob/main/skill/reference/audit.md
+https://github.com/pbakaus/impeccable/blob/main/skill/reference/craft-floor.md
+Manual audit using published guidance; Impeccable launcher/detector was not installed
+or run. No automated Impeccable score or WCAG certification is claimed.
+
+Implementation integrity: coherent, product-specific dot patterns and four
+learning modes. All device claims explicitly identify the design-preview state.
+Accessibility: semantic landmarks, visible labels, keyboard focus outlines,
+skip link, live feedback, audio stop control and reduced-motion CSS. The mystery
+activity deliberately conceals the answer and requires a sighted helper in this
+visual-only demo. Screen-reader and physical-device validation remain outstanding.
+Performance: no external requests, images, fonts, frameworks or new dependencies.
+Theming: centralized palette tokens; light theme only; a few illustration colors
+remain local. Dark mode is outside this design preview.
+Responsive: inspected desktop and narrow mobile browser layouts; no horizontal
+page overflow at the inspected narrow viewport (325 CSS px). Mobile viewport
+emulation is evidence of layout, not physical touch or device testing.
+Verification: sample selection, B practice, saved journey, correct guess, incorrect
+then correct object matching, connector page, and console checked in browser.
+Fixed during verification: skip link no longer changes activity; object matching
+now clears the prior selection. All project checks passed before final small fixes;
+final checks rerun after fixes.
+Remaining P2: cross-device font variation; browser speech requires device QA.
+Before integrated release: validate screen readers and physical touch; add hardware
+failure/retry/readiness flows and real voice-input permissions to the adapters.

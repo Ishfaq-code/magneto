@@ -71,3 +71,7 @@ Dimensions and tolerances are provisional. Test a single catch and pin before pr
 The Readable reconstruction includes the author manuscript, documented measurements and approximation notes under `web/documents/`. It is independently reconstructed geometry, not the authors' original CAD. Third-party manuscript rights remain with the authors/publisher. The servo/reset catch mechanism is a new concept inspired by six-servo actuation and guided pins.
 
 Three.js is vendored under its MIT license in `web/vendor/THREE-LICENSE.txt`. Manifold is an npm dependency under its own license. This repository does not grant additional rights to reference documents.
+
+## Learning companion design preview
+
+Open `/learn/` on the local server (for example http://127.0.0.1:8094/learn/ after running `python3 scripts/serve.py --port 8094`). The mobile-first static companion includes four demo activities, browser-local learning progress, optional browser speech, and clearly unintegrated camera, Braille, and voice-input connectors. Source lives in `web/learn/`; design and audit notes are in `docs/companion-design.txt`.

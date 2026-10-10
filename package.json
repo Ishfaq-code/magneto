@@ -6,7 +6,7 @@
   "scripts": {
     "start": "python3 scripts/serve.py",
     "build:cad": "node scripts/build-drive.mjs && node scripts/build-readable.mjs && node scripts/build-servo.mjs && python3 scripts/export-3mf.py",
-    "check": "node --check web/viewer.js && node --check web/servo-cell.js && node --check web/servo-geometry.js && node --check web/eight-cell-track.js && python3 scripts/check.py"
+    "check": "node --check web/learn/app.js && node --check web/learn/connectors.js && node --check web/viewer.js && node --check web/servo-cell.js && node --check web/servo-geometry.js && node --check web/eight-cell-track.js && python3 scripts/check.py"
   },
   "dependencies": {"manifold-3d": "3.5.4"}
 }
