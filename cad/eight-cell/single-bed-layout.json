@@ -1,0 +1,104 @@
+[
+  {
+    "id": "drive-long-arm-split-3",
+    "angle": 270,
+    "x": 18,
+    "y": 568
+  },
+  {
+    "id": "drive-long-arm-split-2",
+    "angle": 180,
+    "x": 413,
+    "y": 18
+  },
+  {
+    "id": "drive-long-arm-split-1",
+    "angle": 0,
+    "x": 42,
+    "y": 42
+  },
+  {
+    "id": "casing-split-1",
+    "angle": 180,
+    "x": -157,
+    "y": 98
+  },
+  {
+    "id": "casing-split-2a",
+    "angle": 270,
+    "x": 74,
+    "y": -33
+  },
+  {
+    "id": "casing-split-2b",
+    "angle": 90,
+    "x": 86,
+    "y": 311
+  },
+  {
+    "id": "casing-split-3",
+    "angle": 180,
+    "x": 103,
+    "y": 110
+  },
+  {
+    "id": "drive-short-arm-split-1",
+    "angle": 180,
+    "x": 190,
+    "y": 166
+  },
+  {
+    "id": "drive-short-arm-split-2",
+    "angle": 0,
+    "x": -28,
+    "y": 115
+  },
+  {
+    "id": "casing-panel-split-2",
+    "angle": 90,
+    "x": 205,
+    "y": 183
+  },
+  {
+    "id": "wheel-holder-2-rear",
+    "angle": 90,
+    "x": 257,
+    "y": 120
+  },
+  {
+    "id": "wheel-holder-1-rear",
+    "angle": 0,
+    "x": 475,
+    "y": 157
+  },
+  {
+    "id": "wheel-holder-2-front",
+    "angle": 0,
+    "x": 50,
+    "y": 263
+  },
+  {
+    "id": "casing-panel-split-1",
+    "angle": 180,
+    "x": -161,
+    "y": 205
+  },
+  {
+    "id": "wheel-holder-1-front",
+    "angle": 0,
+    "x": 553,
+    "y": 263
+  },
+  {
+    "id": "arm-fit-coupon-1",
+    "angle": 0,
+    "x": 106,
+    "y": 88
+  },
+  {
+    "id": "arm-fit-coupon-2",
+    "angle": 180,
+    "x": 150,
+    "y": 88
+  }
+]

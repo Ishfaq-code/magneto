@@ -1,0 +1,19 @@
+ONE TOP MODULE ON A 256 x 256 mm BED
+
+All 11 pieces are already duplicated and positioned. Import ONE layout file:
+prefer the 3MF for named, separate objects, or use the STL with separate shells.
+Do not import both. Import STL in millimeters at 100 percent scale.
+Layout: 20 mm edge margin, at least 5 mm between bare bounding footprints.
+Occupied coordinates: X 20 to 210.000, Y 20 to 151.000 mm.
+All parts rest at Z=0, preserving CAD Z orientation (XY rotations only).
+
+This is an arranged model layout, NOT sliced printer instructions. No supports,
+rafts, brims, resin/exposure, layer-height or printer settings are embedded.
+Review orientation and supports in your slicer; their extra footprint can require
+rearranging the plate. Inspect layer preview before printing. Do not scale to fit.
+The integrated guide's overhangs, keeper fingers and thin carrier leaves require
+particular attention to support placement and cleanup. Test one module first.
+Prints: base, lid, carrier, left/right keepers and six plungers. No servo base.
+Bought hardware: six 5 mm steel balls plus adhesive; eight M3 x 8 screws.
+Tap the 2.5 mm pillar pilots M3 x 0.5 before fastening. See the separate-part
+one-top-module ZIP for full assembly and existing-base compatibility notes.

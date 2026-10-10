@@ -6,7 +6,12 @@
   "dotLift": 2.4,
   "pinRadius": 1,
   "pinGuideRadius": 1.25,
-  "ballRadius": 3,
+  "ballRadius": 2.5,
   "readingHoleRadius": 3.15,
-  "resetTravel": 5
+  "resetTravel": 6,
+  "ballCenterZ": 59.5,
+  "ballSeatClearance": 0.05,
+  "ballSeatTopZ": 58.2,
+  "ballSeatRadius": 3,
+  "ballSeatBottomZ": 55
 }

@@ -1,6 +1,6 @@
 """Export mesh geometry to basic 3MF Core packages (millimeters, no slicer settings)."""
 from pathlib import Path
-import json, math, zipfile
+import json, math, zipfile, shutil
 import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 NS = 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'
@@ -45,3 +45,42 @@ servo=json.loads((ROOT/'web/models/servo-design.json').read_text())
 for part in servo['parts']:
     if part['printed']:
         write_3mf(ROOT/'exports/servo-reset'/(part['id']+'_DRAFT.3mf'),[part])
+
+for part in json.loads((ROOT/"web/models/eight-cell-design.json").read_text())["parts"]:
+    if part["printed"]: write_3mf(ROOT/"exports/eight-cell"/(part["id"]+"_CONCEPT.3mf"),[part])
+
+# Serve prototype downloads from the same local viewer root.
+for name in ["reset-bracket", "reset-flap", "catch-carrier", "cell-base", "drive-long-arm", "drive-short-arm", "casing", "casing-panel"]:
+    shutil.copyfile(ROOT/"exports/eight-cell"/(name+"_CONCEPT.3mf"),ROOT/"web/models"/(name+"_CONCEPT.3mf"))
+
+
+# The superseded printed axle is now bought hardware, excluded from print exports.
+for path in [ROOT/"exports/eight-cell/reset-axle_CONCEPT.3mf", ROOT/"web/models/reset-axle_CONCEPT.3mf"]:
+    path.unlink(missing_ok=True)
+
+# Finger joints supersede the removable side's separate printed lock pins.
+for name in ['casing-lock-pin-1','casing-lock-pin-2']:
+    for folder in [ROOT/'exports/eight-cell',ROOT/'web/models']:
+        (folder/(name+'_CONCEPT.3mf')).unlink(missing_ok=True)
+
+# Optional bonded split variant, generated from the original shared solids.
+split=json.loads((ROOT/'web/models/split-print-design.json').read_text())
+split_dir=ROOT/'exports/split-cart-arms'
+for part in split['parts']:
+    positions=part['positions']; low=part['low']
+    write_3mf(split_dir/(part['id']+'_CONCEPT.3mf'),[{**part,'positions':[v-low[i%3] for i,v in enumerate(positions)]}])
+for i,bed in enumerate(split['beds'],1):
+    name=f'plate-{i}_256x256_CONCEPT.3mf'
+    write_3mf(split_dir/name,bed['parts'])
+    shutil.copyfile(split_dir/name,ROOT/'web/models'/name)
+shutil.copyfile(ROOT/'cad/eight-cell/SPLIT-PRINT.md',split_dir/'READ-ME.md')
+with zipfile.ZipFile(ROOT/'exports/cart-arms-keyed-256mm.zip','w',zipfile.ZIP_DEFLATED) as archive:
+    for path in [split_dir/(p['id']+'_CONCEPT.3mf') for p in split['parts']]+[split_dir/f'plate-{i}_256x256_CONCEPT.3mf' for i in range(1,len(split['beds'])+1)]+[split_dir/'READ-ME.md']:archive.write(path,path.name)
+shutil.copyfile(ROOT/'exports/cart-arms-keyed-256mm.zip',ROOT/'web/models/cart-arms-keyed-256mm.zip')
+
+# Single-bed deliverable; remove only superseded generated plate layouts.
+if len(split['beds'])==1:
+    shutil.copyfile(split_dir/'plate-1_256x256_CONCEPT.3mf',ROOT/'exports/cart-arms-single-bed-256x256_CONCEPT.3mf')
+for folder in [split_dir,ROOT/'web/models']:
+    for path in folder.glob('plate-*_256x256_CONCEPT.3mf'):
+        if int(path.name.split('_')[0].split('-')[1])>len(split['beds']):path.unlink()

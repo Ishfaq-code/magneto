@@ -1,4 +1,5 @@
 import './header.js';
+import {createDimensions} from './dimensions.js';
 import * as THREE from 'three';
 import {STLLoader} from './vendor/STLLoader.js';
 import {STLExporter} from './vendor/STLExporter.js';
@@ -19,6 +20,7 @@ const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(-80,-120,2
 const fill=new THREE.DirectionalLight(0xffffff,1.2);fill.position.set(100,100,80);scene.add(fill);
 const grid=new THREE.GridHelper(600,30,0xc6d1d8,0xe1e7eb);grid.rotation.x=Math.PI/2;grid.position.z=-3;scene.add(grid);
 const group=new THREE.Group();scene.add(group);const meshes=[];let selected=-1,playing=false,lastTime=0,phase=0,customMode=false,currentMode=null,currentDocument=null,currentDots=[true,true,true,true,true,true];
+const dimensions=createDimensions($('viewport'),camera,()=>meshes.filter(m=>m.visible),()=>$('view').value!=='assembly');
 function linkage(degrees){const theta=degrees*Math.PI/180;const x=35*Math.cos(theta),y=35*Math.sin(theta);return{x,y,slider:x+Math.sqrt(90**2-y**2),phi:Math.atan2(-y,Math.sqrt(90**2-y**2)),theta};}
 function selectPart(i){selected=i;$('partName').textContent=names[i];$('partInfo').textContent=descriptions[i];$('download').hidden=false;if(customMode){if($('download').dataset.blob)URL.revokeObjectURL($('download').dataset.blob);const blob=URL.createObjectURL(new Blob([new STLExporter().parse(new THREE.Mesh(meshes[i].geometry),{binary:true})],{type:'application/octet-stream'}));$('download').href=blob;$('download').dataset.blob=blob;$('download').download=names[i]+'.stl';}else{$('download').href=`models/${files[i]}_DRAFT.stl`;$('download').download=files[i]+'.stl';}meshes.forEach((m,j)=>m.material.emissive.setHex(j===i?0x12212a:0));}
 function update(){if(!meshes.length)return;
@@ -28,7 +30,7 @@ function update(){if(!meshes.length)return;
  $('play').disabled=solo||(customMode&&!readable);$('angle').disabled=solo||customMode;$('explode').disabled=solo||(customMode&&!readable);grid.visible=!solo;
  meshes.forEach((m,j)=>{m.rotation.set(0,0,0);m.scale.set(1,1,1);m.visible=solo?j===i:$('visible'+j).checked;if(solo){m.position.copy(m.userData.center).multiplyScalar(-1);return;}if(readable){const part=m.userData.part,down=part.channel!==null&&!currentDots[part.channel];m.position.set(0,0,e*part.level*8);m.scale.set(1,1,1);if(part.spring&&down){const scale=(5.4-.8)/5.4;m.scale.z=scale;m.position.z+=12*(1-scale);}else if(down&&(part.group.startsWith('03')||part.group.startsWith('04')))m.position.z-=.8;return;}if(customMode){m.position.copy(m.userData.center).multiplyScalar(-1);m.position.x+=(j-(meshes.length-1)/2)*140;return;}if(j===0)m.position.set(k.slider+40,0,24+e*90);if(j===1){m.position.set(k.x,k.y,18+e*60);m.rotation.z=k.phi;}if(j===2){m.position.set(0,0,13+e*30);m.rotation.z=k.theta;}if(j===3){m.position.set(0,0,0);m.rotation.z=k.theta;}});
 }
-function fit(top=false){const box=new THREE.Box3();meshes.filter(m=>m.visible).forEach(m=>box.expandByObject(m));if(box.isEmpty())return;const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());const distance=Math.max(size.x,size.y,size.z,20)/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)))*1.5/Math.min(camera.aspect,1);controls.target.copy(center);camera.position.copy(center).add(top?new THREE.Vector3(0,.001,distance):new THREE.Vector3(.6,-.8,.8).normalize().multiplyScalar(distance));camera.near=.1;camera.far=5000;camera.updateProjectionMatrix();controls.update();}
+function fit(top=false){const box=new THREE.Box3();meshes.filter(m=>m.visible).forEach(m=>box.expandByObject(m));if(box.isEmpty())return;const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());const distance=Math.max(size.x,size.y,size.z,20)/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)))*1.85/Math.min(camera.aspect,1);controls.target.copy(center);camera.position.copy(center).add(top?new THREE.Vector3(0,.001,distance):new THREE.Vector3(.6,-.8,.8).normalize().multiplyScalar(distance));camera.near=.1;camera.far=5000;camera.updateProjectionMatrix();controls.update();}
 function stop(){playing=false;$('play').textContent=currentMode==='readable'?'Animate dots':'Play linkage';}
 $('view').onchange=()=>{stop();if($('view').value!=='assembly')selectPart(Number($('view').value));update();fit();};
 $('angle').oninput=()=>{stop();update();};$('explode').oninput=update;
@@ -46,7 +48,7 @@ function setParts(parts){
  selectPart(0);update();fit();
 }
 async function load(){try{const originalNames=[...names],originalDescriptions=[...descriptions];const data=await Promise.all(files.map(async f=>{const r=await fetch(`models/${f}.mesh.json`);if(!r.ok)throw new Error('Missing model: '+f);return r.json();}));setParts(data.map((tri,i)=>({name:originalNames[i],description:originalDescriptions[i],positions:tri.flat(2)})));$('status').textContent='';}catch(e){$('status').textContent='Could not load models. Start the included local server, then reload. '+e.message;}}
-function frame(time){requestAnimationFrame(frame);const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;if(playing&&currentMode==='readable'){phase+=dt;const patterns=[[true,true,true,false,false,false],[true,false,false,false,true,false],[false,true,true,true,false,false]];currentDots=patterns[Math.floor(phase)%patterns.length];updateDots();update();}else if(playing){phase+=dt*.7;$('angle').value=90+45.585*Math.cos(phase);update();}controls.update();renderer.render(scene,camera);}load().then(async()=>{await installDriveDesign();await installPaperDesign();});requestAnimationFrame(frame);
+function frame(time){requestAnimationFrame(frame);const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;if(playing&&currentMode==='readable'){phase+=dt;const patterns=[[true,true,true,false,false,false],[true,false,false,false,true,false],[false,true,true,true,false,false]];currentDots=patterns[Math.floor(phase)%patterns.length];updateDots();update();}else if(playing){phase+=dt*.7;$('angle').value=90+45.585*Math.cos(phase);update();}controls.update();dimensions.update();renderer.render(scene,camera);}load().then(async()=>{await installDriveDesign();await installPaperDesign();});requestAnimationFrame(frame);
 
 // Small browser-local design library. Saves geometry as well as the view settings.
 const storageKey='magneto-designs-v1';

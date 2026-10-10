@@ -1,0 +1,59 @@
+MAGNETO — EIGHT-CELL RESIN STL PACK (CONCEPT)
+
+Import STLs in MILLIMETERS at 100% scale. STL does not encode units.
+Each file contains ONE part. Duplicate it to the quantity in its filename.
+Bed A and Bed B are suggested quantity allocations, NOT arranged print beds.
+Printer models/build volumes are unknown. They may require multiple runs.
+No supports, rafts, exposure, orientation or resin profile are supplied.
+Parts are translated to the origin only, retaining the original CAD axes.
+Use the compatible resin manufacturer's print/wash/cure profile in your slicer.
+Support and orientation footprints must be included when checking bed fit.
+
+Each batch: 4 bases, 4 plates, 4 carriers, 24 plungers, 4 left and 4 right keepers.
+Bed A additionally has 1 reset bracket; Bed B has 1 reset flap.
+Total required: 8 bases + 8 plates + 8 carriers + 48 plungers + 1 bracket + 1 flap + 8 left and 8 right keepers.
+Optional extras are outside these totals and are not promised to fit either bed:
+12 spare plungers, 2 spare carriers, 1 spare plate, 1 shared servo docking base.
+The docking base is needed only if you do not already have it; filament is reasonable.
+
+FIRST TRIAL: print one base, plate, carrier and six plungers before bulk production.
+CLEARANCE REVISION: upper stem guide raised 0.6 mm. At least 3 mm guide travel
+is checked; normal lift remains 2.4 mm. Collar-to-upper-guide headroom at rest
+is now 5.0 mm (previously 4.4 mm), not a 3 mm mechanical travel stop.
+REVISION: six side-entry stem slots restored in the shared cell base, with matching
+foot entry openings. Stem slots are 2.5 mm wide; lower foot slots are 6.6 mm wide.
+Insert plungers from the nearest left/right side with the lid and catch carrier
+removed and the module off the servo base. Fit both removable comb keepers after
+loading plungers. Each keeper takes two bought M3 x 8 screws through 3.3 mm holes
+into 2.5 mm tap pilots in dedicated pillars. Tap M3 x 0.5 threads after printing.
+Nominal keeper thickness 2 mm, seated on the guide, thread engagement 6 mm;
+pilot depth 8 mm. Verify usable blind thread depth and actual screw length.
+Remove screws and slide keepers outward for service with the module out of its tray.
+Keeper tongues have 0.2 mm side clearance in entry slots and stop 0.45 mm from the
+nominal shaft surface; these fits and printed strength require a physical trial.
+Required per cell: one left keeper, one right keeper, FOUR additional M3 x 8 screws.
+Eight cells: 16 keepers and 32 keeper screws, additional to the 32 lid screws.
+Open slots do not retain plungers until keepers are fitted. Do not force a cured fit.
+After full curing, test ball seats, free movement, catch/reset operation and lid threads.
+Carrier return leaves are 0.8 mm thick; require resilient material and repeated-cycle
+physical trials. Generic brittle resin is a poor choice for these flexures.
+Keep support scars away from sliding stems, guide holes, ball cups, cam/pivot faces
+and thin spring leaves where feasible. Inspect and clean fits after support removal.
+Plates need flatness checks. Base posts have 2.5 mm blind tap pilots: cut M3 x 0.5
+threads, check usable depth and test one cured post before assembling all eight.
+Do not force the nail into the bracket's provisional retaining socket.
+
+Bought hardware (NOT printed): 48 steel balls of nominal 5 mm diameter, 32 M3 x 8
+lid screws, six servos and appropriate station hardware, nominal 3 x 16 mm reset
+nail. Drive, cart wheels and electronics require their own hardware separately.
+Do not add obsolete rail stands, separate lid standoffs, or illustrative wheel
+mounts/motor pedestal/towing eye to this resin run. Those are unnecessary or lack
+fabrication detail. Large casing and arms are excluded from these resin batches.
+
+All geometry, fits and dimensions are provisional. Mesh validation and prescribed
+viewer motion do not establish strength, fatigue life or mechanical reliability.
+The current rail CAD supplies bases/plates/carriers/reset parts; the shared rail
+servo CAD supplies plungers and docking base. No old single-cell ZIP is reused.
+Rebuild: npm run build:cad
+Material background: https://formlabs.com/support/Using-Tough-1500-Resin-V1/
+Resin compatibility with your printer must be confirmed; no brand is prescribed.

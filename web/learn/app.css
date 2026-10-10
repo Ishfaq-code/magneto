@@ -64,3 +64,7 @@ h1, h2, h3, p, .feedback, .progress-list li { overflow-wrap: anywhere; }
   .sun { width: 36px; height: 36px; }
   .panel { padding: clamp(14px, 5vw, 20px); }
 }
+
+.live-camera{display:block;width:100%;max-height:65vh;aspect-ratio:4/3;object-fit:contain;background:#203e38;border-radius:16px;}
+
+.suggested-guess{display:flex;flex-direction:column;align-items:flex-start;width:min(100%,20rem);min-height:0;aspect-ratio:1;margin-top:24px;padding:clamp(20px,4vw,28px);background:#f1dfd3;border-radius:20px;box-shadow:0 8px 24px #203e3810;}.suggested-guess .tag{font-size:.8rem;margin-bottom:16px;}.suggested-guess h3{margin-top:16px;}.suggested-guess .activity-bottom{margin-top:auto;width:100%;}

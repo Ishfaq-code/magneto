@@ -48,7 +48,7 @@ Open **Designs → Servo + reset → Open** to inspect the solid servo concept. 
 
 The Designs library includes **Motor arm — four-part drive**, Servo + reset, and the Readable reconstruction. Their source geometry ships with this repository, including `web/models/drive-design.json`, so a fresh browser can install the motor-arm entry. The yellow **8-cell track** button appears only in Servo + reset. **Assemble** restores assembled positions; **Center view** frames the current view. Import STL files to start a design, then name and save it. Saved designs live in localStorage: changing the browser or localhost port creates a separate library, and clearing browser data removes saves. They are not written into this Git repository.
 
-The eight-cell track page is an additional visual concept. Its geometry is not included among the printable exports.
+The eight-cell track page includes separate concept 3MFs for its casing, cells, reset and two drive arms under `exports/eight-cell/`. Its drive arms share CAD with the browser: a 225 mm short arm with PK244M-03BA shaft clamp and a 550 mm connecting arm with a bearing seat. Bearing width, printed fits and mechanical performance remain provisional; see [eight-cell notes](cad/eight-cell/README.md).
 
 ## Rebuild the CAD and 3MF files
 
@@ -62,7 +62,7 @@ npm run check
 
 CAD uses Manifold for joined solid bodies and subtracted holes. Generated 3MFs use millimeters and contain geometry only, without slicer profiles. Open individual `*_DRAFT.3mf` files in a slicer to choose print orientation and settings. Assembly files preserve the assembled positions and include bought hardware envelopes; they are for inspection.
 
-Servo/reset has five printed bodies: housing with support posts, reading plate, lower guide, upper guide and the catch carrier with pull tab. Pins/collars, horns and SG90 bodies are separate hardware representations. All 23 bodies are connected solids; the five printed meshes pass closed-edge checks. Geometry validation does not validate mechanical performance.
+Servo/reset has ten printed bodies: the standalone servo docking base, removable cell base with integrated supports and stem guide, reading plate, catch carrier, and six ball-seat plungers. The cell base, plate and carrier come from the same CAD as a rail cell, translated down 20 mm; the plungers and bought 5 mm steel balls are also shared. The module seats on four locating posts for standalone use and can be installed in the rail casing. All 28 assembly bodies are connected solids. Mesh validation does not validate mechanical performance.
 
 Dimensions and tolerances are provisional. Test a single catch and pin before printing the full mechanism. The flex animation illustrates intent, and the model has no force, fatigue or collision simulation. Verify SG90 dimensions, mounting, catch material, friction and gravity return. The four-part drive bearing width and shaft fit also need confirmation. See [design notes](docs/design-notes.md).
 

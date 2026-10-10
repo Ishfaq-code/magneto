@@ -1,33 +1,50 @@
 import * as THREE from './vendor/three.module.js';
 // The animation consumes exactly the solid meshes produced by scripts/build-servo.mjs.
-export function createServoGeometry(design){
+export function createServoGeometry(design,{station=true,cell=true}={}){
  const groups=Object.fromEntries(['frame','servo','pins','catches'].map(k=>[k,new THREE.Group()]));
- const horns=[],pins=[],fingers=Array.from({length:6},()=>({position:{x:0}}));
+ const horns=[],pins=[],fingers=Array.from({length:6},()=>({position:{x:0,y:0}}));
  const latched=Array(6).fill(false),chosen=Array(6).fill(false),carrier=new THREE.Group();
  groups.catches.add(carrier);let lidMat,catchMesh,catchRest;
  const colors={frame:0x71848e,servo:0x2584b4,pins:0xb6c6cf,catches:0x63a78a};
  for(const part of design.parts){
+  const stationPart=part.group==='servo'||part.id==='housing';
+  if((stationPart&&!station)||(!stationPart&&!cell))continue;
   const positions=Float32Array.from(part.positions);
   if(part.horn)for(let i=0;i<positions.length;i++)positions[i]-=part.pivot[i%3];
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));geometry.computeVertexNormals();
-  const material=new THREE.MeshStandardMaterial({color:part.horn?0xe3aa45:colors[part.group],roughness:.65,metalness:part.group==='pins'?.65:0});
-  const mesh=new THREE.Mesh(geometry,material);mesh.name=part.name;
+  const material=new THREE.MeshStandardMaterial({color:part.horn?0xe3aa45:part.group==='pins'&&!part.ball?0xe5b77d:colors[part.group],roughness:.65,metalness:part.ball?.8:0});
+  const mesh=new THREE.Mesh(geometry,material);mesh.name=part.name;mesh.userData.sourcePart=part.id;mesh.userData.printed=part.printed;
   if(part.lid){lidMat=material;material.transparent=true;material.opacity=.32;material.depthWrite=false;}
   if(part.horn){mesh.position.set(...part.pivot);mesh.userData.sign=part.sign;horns.push(mesh);groups.servo.add(mesh);}
-  else if(part.group==='pins'){pins[part.channel]=mesh;groups.pins.add(mesh);}
+  else if(part.group==='pins'){if(!pins[part.channel]){pins[part.channel]=new THREE.Group();groups.pins.add(pins[part.channel]);}mesh.userData.ball=!!part.ball;pins[part.channel].add(mesh);}
   else if(part.carrier){carrier.add(mesh);catchMesh=mesh;catchRest=positions.slice();}
   else groups[part.group].add(mesh);
  }
  function applyCatchFlex(){
+  if(!catchMesh)return;
   const positions=catchMesh.geometry.attributes.position;
   for(let i=0;i<positions.count;i++){
    const x=catchRest[i*3],y=catchRest[i*3+1],z=catchRest[i*3+2];let offset=0;
    for(let c=0;c<6;c++){
     const px=c<3?-design.parameters.dotPitch/2:design.parameters.dotPitch/2;
     const py=(c%3-1)*design.parameters.dotPitch;
-    if(Math.abs(y-py)<=2.001&&x>=px+1.2&&x<=px+7.7&&z>39){offset=fingers[c].position.x*Math.min(1,(z-39)/8);break;}
+    if(Math.abs(x-px)<=2.01&&y>py+1&&y<py+7.5&&z>43){offset=fingers[c].position.y*Math.min(1,(z-43)/4);break;}
    }
-   positions.setX(i,x+offset);
+   if(design.catchAxis==='x'){
+    offset=0;
+    for(let c=0;c<6;c++){
+     const px=c<3?-design.parameters.dotPitch/2:design.parameters.dotPitch/2,py=(c%3-1)*design.parameters.dotPitch;
+     if(Math.abs(y-py)<=2.001&&x>=px+1.2&&x<=px+7.7&&z>39){offset=fingers[c].position.x*Math.min(1,(z-39)/8);break;}
+    }
+    positions.setX(i,x+offset);positions.setY(i,y);continue;
+   }
+   // Shared carrier return leaves bend against the cell-base pegs (illustrative).
+   let spring=0;
+   if(z<43.1&&y<-27){
+    if(Math.abs(y+29)<.61)spring=-carrier.position.y*Math.max(0,Math.min(1,(x+18)/32));
+    if(Math.abs(y+34)<.61)spring=-carrier.position.y*Math.max(0,Math.min(1,(18-x)/32));
+   }
+   positions.setY(i,y+offset+spring);
   }
   positions.needsUpdate=true;catchMesh.geometry.computeVertexNormals();
  }
