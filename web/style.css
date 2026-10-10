@@ -5,3 +5,9 @@
 .groupHeading{font-size:11px;color:#657680;margin:20px 0 8px}.readable label[for=angle],.readable #angle,.readable .readout{display:none}#dotButtons{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 15px}#dotButtons button{font-size:12px;padding:6px 9px}#dotButtons button[aria-pressed=true]{background:#e3a13b;color:#21343e}#paperDetails p{font-size:12px;color:#657680;line-height:1.5}details{margin-top:15px;font-size:12px}summary{cursor:pointer}table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}td{padding:8px 2px;border-bottom:1px solid #dce2e6;vertical-align:top}td:last-child{color:#657680}#dotControls p{font-size:12px;color:#657680}
 
 .partGroup{margin:14px 0}.partGroup>summary{font-weight:600;color:#657680;font-size:12px}.partGroup .part{padding-left:6px}
+
+.toolbar .toolbarLink,.toolbar .trackButton{display:inline-block;font:inherit;font-size:12px;line-height:normal;border:1px solid #d0d9df;border-radius:6px;padding:9px 12px;color:#21343e;background:white;white-space:nowrap}
+.toolbar .trackButton{background:#f4cb4f;border-color:#d5aa2b;color:#332a12}
+.toolbar .trackButton:hover{background:#e9bd39}
+.toolbar .toolbarLink:hover{background:#edf2f5}
+.toolbar{flex-wrap:wrap}

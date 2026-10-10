@@ -1,3 +1,4 @@
+import './header.js';
 import * as THREE from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
 const $=id=>document.getElementById(id), scene=new THREE.Scene();scene.background=new THREE.Color('#f3f5f7');

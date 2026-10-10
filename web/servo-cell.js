@@ -1,3 +1,4 @@
+import './header.js';
 import {createServoGeometry} from './servo-geometry.js';
 import * as THREE from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';

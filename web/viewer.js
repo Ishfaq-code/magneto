@@ -1,3 +1,4 @@
+import './header.js';
 import * as THREE from 'three';
 import {STLLoader} from './vendor/STLLoader.js';
 import {STLExporter} from './vendor/STLExporter.js';
