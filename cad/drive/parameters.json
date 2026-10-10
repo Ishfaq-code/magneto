@@ -1,0 +1,16 @@
+{
+  "carriageLength": 100,
+  "carriageWidth": 80,
+  "carriageThickness": 5,
+  "mountSpacingX": 70,
+  "mountSpacingY": 50,
+  "rodLength": 90,
+  "crankRadius": 35,
+  "bearingOD": 9.525,
+  "bearingWidth": 3.175,
+  "bearingClearance": 0.15,
+  "shaftDiameter": 5,
+  "shaftFlatDistance": 4.5,
+  "shaftClearance": 0.15,
+  "screwClearance": 3.3
+}

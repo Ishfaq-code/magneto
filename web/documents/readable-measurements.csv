@@ -1,0 +1,13 @@
+Parameter,Documented value,Source location
+Case envelope,40 × 35 × 23.8 mm,"p. 3, Sec. III; Fig. 2c"
+Lid footprint,35.4 × 25.4 mm,"p. 2, Fig. 2c"
+Solenoid body,5.7 × 7.3 × 10.5 mm,"p. 2, Sec. II; Fig. 2b"
+Solenoid bore,2 mm,"p. 2, Sec. II"
+Actuator pitch,8 mm; second axis 6.45 mm,"p. 3 text; p. 2, Fig. 2b"
+Exposed plunger assembly,8.6 mm,"p. 2, Fig. 2b"
+Dot pitch,2.45 mm,"p. 3, Sec. III; Fig. 2c"
+Raised dot height,0.6 mm,"p. 3, Sec. II-A"
+Spring stiffness,0.82 N/mm,"p. 3, Sec. III"
+Pin mass,0.42 g,"p. 3, Sec. III"
+Actuation,4.30 V; 240 mA,"p. 3, Sec. II-A"
+Refresh characterization,up to 4 Hz,"p. 3, Sec. III"

@@ -1,0 +1,12 @@
+{
+  "baseLength": 110,
+  "baseWidth": 90,
+  "baseThickness": 4,
+  "dotPitch": 20,
+  "dotLift": 2.4,
+  "pinRadius": 1,
+  "pinGuideRadius": 1.25,
+  "ballRadius": 3,
+  "readingHoleRadius": 3.15,
+  "resetTravel": 5
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "01_flat_carriage_bottom",
+    "status": "NoError",
+    "triangles": 1952,
+    "volume_mm3": 39786.32797680512,
+    "bounds": {
+      "min": [
+        -50,
+        -40,
+        0
+      ],
+      "max": [
+        50,
+        40,
+        5
+      ]
+    }
+  },
+  {
+    "name": "02_long_connecting_arm",
+    "status": "NoError",
+    "triangles": 1932,
+    "volume_mm3": 8794.815334749806,
+    "bounds": {
+      "min": [
+        -9,
+        -9,
+        0
+      ],
+      "max": [
+        99,
+        9,
+        5
+      ]
+    }
+  },
+  {
+    "name": "03_short_crank_arm",
+    "status": "NoError",
+    "triangles": 2094,
+    "volume_mm3": 5545.561275515478,
+    "bounds": {
+      "min": [
+        -16,
+        -16,
+        0
+      ],
+      "max": [
+        44,
+        16,
+        5
+      ]
+    }
+  },
+  {
+    "name": "04_motor_shaft_adapter",
+    "status": "NoError",
+    "triangles": 2424,
+    "volume_mm3": 5316.414188314494,
+    "bounds": {
+      "min": [
+        -16,
+        -16,
+        0
+      ],
+      "max": [
+        16,
+        16,
+        16
+      ]
+    }
+  }
+]
