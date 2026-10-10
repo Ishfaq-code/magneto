@@ -46,7 +46,7 @@ AGENTS.md                Brief guidance for coding agents
 
 Open **Designs → Servo + reset → Open** to inspect the solid servo concept. Select dots, click **Write selected**, then **Pull reset tab**. The view selector and checkboxes isolate groups; Explode separates them. Drag to orbit, scroll to zoom and right-drag to pan.
 
-The main viewer includes the four-part drive and Readable reconstruction. **Assemble** restores assembled positions; **Center view** frames the current view. Import STL files to start a design, then name and save it. Saved designs live in localStorage: changing the browser or localhost port creates a separate library, and clearing browser data removes saves. They are not written into this Git repository.
+The Designs library includes **Motor arm — four-part drive**, Servo + reset, and the Readable reconstruction. Their source geometry ships with this repository, including `web/models/drive-design.json`, so a fresh browser can install the motor-arm entry. The yellow **8-cell track** button appears only in Servo + reset. **Assemble** restores assembled positions; **Center view** frames the current view. Import STL files to start a design, then name and save it. Saved designs live in localStorage: changing the browser or localhost port creates a separate library, and clearing browser data removes saves. They are not written into this Git repository.
 
 The eight-cell track page is an additional visual concept. Its geometry is not included among the printable exports.
 

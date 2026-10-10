@@ -46,7 +46,7 @@ function setParts(parts){
  selectPart(0);update();fit();
 }
 async function load(){try{const originalNames=[...names],originalDescriptions=[...descriptions];const data=await Promise.all(files.map(async f=>{const r=await fetch(`models/${f}.mesh.json`);if(!r.ok)throw new Error('Missing model: '+f);return r.json();}));setParts(data.map((tri,i)=>({name:originalNames[i],description:originalDescriptions[i],positions:tri.flat(2)})));$('status').textContent='';}catch(e){$('status').textContent='Could not load models. Start the included local server, then reload. '+e.message;}}
-function frame(time){requestAnimationFrame(frame);const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;if(playing&&currentMode==='readable'){phase+=dt;const patterns=[[true,true,true,false,false,false],[true,false,false,false,true,false],[false,true,true,true,false,false]];currentDots=patterns[Math.floor(phase)%patterns.length];updateDots();update();}else if(playing){phase+=dt*.7;$('angle').value=90+45.585*Math.cos(phase);update();}controls.update();renderer.render(scene,camera);}load().then(installPaperDesign);requestAnimationFrame(frame);
+function frame(time){requestAnimationFrame(frame);const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;if(playing&&currentMode==='readable'){phase+=dt;const patterns=[[true,true,true,false,false,false],[true,false,false,false,true,false],[false,true,true,true,false,false]];currentDots=patterns[Math.floor(phase)%patterns.length];updateDots();update();}else if(playing){phase+=dt*.7;$('angle').value=90+45.585*Math.cos(phase);update();}controls.update();renderer.render(scene,camera);}load().then(async()=>{await installDriveDesign();await installPaperDesign();});requestAnimationFrame(frame);
 
 // Small browser-local design library. Saves geometry as well as the view settings.
 const storageKey='magneto-designs-v1';
@@ -71,3 +71,13 @@ if(!localStorage.getItem('magneto-servo-installed-v1')){
  if(persist([d,...designs.filter(x=>x.id!==d.id)]))localStorage.setItem('magneto-servo-installed-v1','true');
 }
 if(location.hash==='#designs')showTab(true);
+
+async function installDriveDesign(){
+ try{
+  if(localStorage.getItem('magneto-drive-installed-v1'))return;
+  const r=await fetch('models/drive-design.json');if(!r.ok)throw new Error('Could not load motor-arm design');
+  const d=await r.json();
+  if(!designs.some(x=>x.id===d.id)&&!persist([d,...designs]))return;
+  localStorage.setItem('magneto-drive-installed-v1','true');renderDesigns();
+ }catch(e){$('designStatus').textContent=e.message;}
+}
