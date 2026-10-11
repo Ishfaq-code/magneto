@@ -1,0 +1,33 @@
+// Generated from databricks/contracts/v3/activity-catalog.json by scripts/prepare_agent.py.
+export const ACTIVITY_CATALOG = {
+  "caterpillar/tuesday-pear/identify-p@1": {
+    "story": "caterpillar-demo",
+    "passage": "tuesday_pear",
+    "target": "p",
+    "task": "identify"
+  },
+  "caterpillar/wednesday-plum/identify-p@1": {
+    "story": "caterpillar-demo",
+    "passage": "wednesday_plum",
+    "target": "p",
+    "task": "identify"
+  },
+  "peter-rabbit/rabbit/identify-r@1": {
+    "story": "peter-rabbit",
+    "passage": "rabbit",
+    "target": "r",
+    "task": "identify"
+  },
+  "peter-rabbit/lettuce/identify-l@1": {
+    "story": "peter-rabbit",
+    "passage": "lettuce",
+    "target": "l",
+    "task": "identify"
+  },
+  "peter-rabbit/radish/identify-r@1": {
+    "story": "peter-rabbit",
+    "passage": "radish",
+    "target": "r",
+    "task": "identify"
+  }
+};

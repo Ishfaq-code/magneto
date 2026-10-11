@@ -78,3 +78,19 @@ databricks/magneto-director/.venv/bin/python scripts/verify_tracing.py --readbac
 Readback is bounded to 60 seconds per invocation of the verifier. The local SQL
 helper explicitly uses profile `magneto`; deployed writes use the app identity.
 The existing SQL warehouse is used for setup/readback; no learner database was added.
+
+## Optional learning-history uploads
+
+PR #7 extends this app with v2 legacy events/profiles and v3 lean attempts. See
+[the contract and migration notes](../contracts/v3/README.md). This is durable observation storage;
+the decision graph continues to use its supplied v1 snapshot and does not read the tables.
+The browser keeps one profile across session restarts, asks for upload opt-in, and records
+support separately from the teacher's response. Existing books and local progress stay separate.
+
+With learning_warehouse_id empty, learning routes return 503 and queues remain local.
+When configured for an explicit deployment, startup creates missing learning tables. SQL values
+are parameterized; only successful statements and matching event/attempt readback produce
+acknowledgements. The SDK wait is bounded to 5 seconds with cancellation on timeout.
+See the [Statement Execution API](https://docs.databricks.com/api/statement-execution/v1/statement-execution).
+No raw transcripts, media, device commands or model reasoning are accepted in v3.
+The check:learning script covers contract rejection, storage failures, idempotent retries and the browser outbox.

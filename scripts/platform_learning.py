@@ -14,10 +14,12 @@ def main():
         services = Services(ServiceConfig.load(ROOT / 'databricks/platform/services.toml'))
         if 'profile' in payload:
             profile = payload['profile']
-            result = services.create_learning_profile(profile, timeout_s=12)
+            result = services.create_learning_profile(profile, timeout_s=30)
+        elif payload.get('schema_version') == '3.0':
+            result = services.ingest_learning_attempts(payload, timeout_s=30)
         else:
             profile_id = payload['events'][0]['profile_id']
-            result = services.ingest_learning_events(payload, profile_id=profile_id, timeout_s=12)
+            result = services.ingest_learning_events(payload, profile_id=profile_id, timeout_s=30)
         print(json.dumps(result))
         return 0
     except Exception as exc:

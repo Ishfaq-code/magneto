@@ -38,15 +38,22 @@ flowchart LR
 - The director result wraps the decision with `request_id`, `session_id`, `model`, and `elapsed_ms`; Databricks invocation transport wraps that as `{id, status: "completed", output}`. Existing validation remains authoritative for these transport envelopes.
 - The local runtime saves teacher responses before the next request. Device failure is **not** a learner mistake. Device commands/acknowledgements remain the runtime teammate's separate execution interface and do not belong in `events`.
 
-## Learning intelligence v2
+## Learning intelligence v2 and v3
 
-The v2 interaction-event and profile schemas define the first durable learning boundary. The browser queues events locally and sends batches through the localhost bridge; event delivery is at-least-once and consumers must deduplicate by `event_id`. Profile IDs are opaque UUIDs and consent is explicit. v2 does not change the deployed v1 decision payload.
+The v2 event and profile interfaces remain available for compatibility. New observations use the
+[v3 attempts contract](v3/README.md): bounded batches with stable profile/session identity,
+immutable activity references, result, support, assessment and observation time. The browser
+requires explicit upload opt-in and retains queued records until a matching acknowledgement.
+Both localhost and cloud use the same strict validator. Never count unknown support as
+independent success or convert legacy correct responses into mastery.
 
-The current browser event set is intentionally small. Do not put raw book text, device commands, credentials, or inferred diagnoses in event metadata. Device unavailability is its own event outcome and is never a learner error.
+Read [v3 migration notes](v3/README.md) before changing either endpoint. Fixtures, including the
+rabbit session, are synthetic. The current browser producer is the connected Caterpillar demo;
+Peter Rabbit teacher-coach uploads and Personal Intelligence readback are not connected yet.
 
 ## Storage scope
 
-Use the existing references volume for explicitly uploaded sources, one future Delta guidance table feeding an AI Search index, existing MLflow for traces, and current browser-local demo sessions. Table/index creation and retrieval integration are **not** performed by this contract setup. No PostgreSQL/Lakebase, learner database, event replication, branching narrative storage, or separate agent-history database is required.
+Use the existing references volume for explicitly uploaded sources, one future Delta guidance table feeding an AI Search index, existing MLflow for traces, and current browser-local demo sessions. Table/index creation and retrieval integration are **not** performed by this contract setup. The optional learning upload extension adds Delta profile/event/attempt tables when learning storage is explicitly configured. It does not require PostgreSQL/Lakebase, branching narrative storage, or a separate agent-history database.
 
 ## How teammates start
 

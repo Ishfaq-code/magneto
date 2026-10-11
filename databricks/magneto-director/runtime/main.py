@@ -4,6 +4,7 @@ Managed Runtime Store is unavailable on this workspace tier. This foreground end
 has no background runs, implicit memory or restart durability. Every request is self-contained.
 """
 import asyncio
+import json
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
@@ -16,7 +17,8 @@ import uvicorn
 from agent.agent import configure
 from agent.decision import ContractError, validate_snapshot
 from runtime.adapter import invoke
-from learning.store import LearningStore
+from learning.store import LearningStore, StorageUnavailable, RecordConflict, ConsentRequired
+from learning.contract import validate_batch, validate_attempts, validate_profile
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=False)
 
@@ -66,37 +68,46 @@ async def invocations(request: Request):
         raise HTTPException(502,'Decision could not be completed') from exc
 
 
-@app.post('/api/learning/events')
-async def learning_events(request: Request):
+async def _learning_write(request, validator, method, *, profile_payload=False):
     store = getattr(app.state, 'learning_store', None)
     if store is None:
         raise HTTPException(503, 'Learning storage is not configured')
     try:
-        body = await request.json()
-        from learning.contract import validate_batch
-        payload = validate_batch(body)
-        profile = request.headers.get('x-profile-key')
-        if profile != payload['events'][0]['profile_id']:
-            raise ValueError('Profile header does not match events')
-        return await asyncio.to_thread(store.ingest_events, payload['events'])
+        raw = bytearray()
+        async for chunk in request.stream():
+            raw.extend(chunk)
+            if len(raw) > (8192 if profile_payload else 65536):
+                raise HTTPException(413, 'Learning payload too large')
+        payload = validator(json.loads(raw))
+        profile_id = payload.get('profile_id') or payload['events'][0]['profile_id']
+        if request.headers.get('x-profile-key') != profile_id:
+            raise ValueError('Profile header does not match payload')
+    except (ValueError, TypeError, KeyError) as exc:
+        raise HTTPException(400, 'Invalid learning payload') from exc
+    try:
+        value = payload['events'] if method == 'ingest_events' else payload
+        return await asyncio.to_thread(getattr(store, method), value)
+    except ConsentRequired as exc:
+        raise HTTPException(403, 'Learning uploads are not enabled for this profile') from exc
+    except RecordConflict as exc:
+        raise HTTPException(409, 'Record ID conflict; original record retained') from exc
     except Exception as exc:
-        raise HTTPException(400, 'Invalid learning event batch') from exc
+        raise HTTPException(503, 'Learning storage has not confirmed this upload; retry later') from exc
+
+
+@app.post('/api/learning/events')
+async def learning_events(request: Request):
+    return await _learning_write(request, validate_batch, 'ingest_events')
+
+
+@app.post('/api/learning/attempts')
+async def learning_attempts(request: Request):
+    return await _learning_write(request, validate_attempts, 'ingest_attempts')
 
 
 @app.post('/api/learning/profile')
 async def learning_profile(request: Request):
-    store = getattr(app.state, 'learning_store', None)
-    if store is None:
-        raise HTTPException(503, 'Learning storage is not configured')
-    try:
-        body = await request.json()
-        from learning.contract import validate_profile
-        profile = validate_profile(body)
-        if request.headers.get('x-profile-key') != profile['profile_id']:
-            raise ValueError('Profile header does not match profile')
-        return await asyncio.to_thread(store.create_profile, profile)
-    except Exception as exc:
-        raise HTTPException(400, 'Invalid learning profile') from exc
+    return await _learning_write(request, validate_profile, 'create_profile', profile_payload=True)
 
 
 def main():

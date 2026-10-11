@@ -55,6 +55,8 @@ function demoView() {
     'The teacher reads the plum passage from their own book and offers the plum prop.',
     'You’ve finished this simulated activity. Your teacher can continue reading the original book.'
   ][step];
+  const uploads = director.outbox;
+  const sharing = '<details class="panel"><summary>Learning history</summary><p>One student profile in this browser. Uploads save confirmed responses and support used for later review.</p><label><input type="checkbox" id="learning-uploads"' + (uploads.uploadsEnabled ? ' checked' : '') + '> Enable learning history uploads</label><p role="status" id="learning-status">' + (uploads.uploadsEnabled ? 'Uploads enabled. ' : 'Uploads paused. Existing cloud records are retained. ') + uploads.queuedCount + ' records waiting.</p>' + '<p role="status" id="learning-error">' + escape(uploads.error) + '</p>' + '<button type="button" class="secondary" id="learning-retry">Retry pending uploads</button></details>';
   const raised = decision?.target_letter === 'A' ? [1] : [1,2,3,4];
   const activity = decision?.action === 'teach' ? `<div class="demo-letter"><span class="braille" role="img" aria-label="Braille ${escape(decision.target_letter)}: dots ${raised.join(', ')}">${[1,2,3,4,5,6].map(n=>`<span class="dot ${raised.includes(n)?'raised':''}"></span>`).join('')}</span><div><strong>Magneto previews ${escape(decision.target_letter)}</strong><p>On-screen simulation. The teacher supplies tactile Braille.</p></div></div><p class="intro">${escape(decision.prompt)}</p>` : '';
   let controls = '';
@@ -62,10 +64,10 @@ function demoView() {
   else if (director.pending) controls = '<p role="status" aria-live="polite">Databricks is deciding the next interaction…</p>';
   else if (director.error) controls = `<p role="alert">${escape(director.error)}</p><div class="choices"><button class="primary" id="decision-retry">Retry</button><button class="secondary" id="decision-skip">Continue without activity</button></div>`;
   else if (director.skipped) controls = '<p role="status">Teacher chose to continue without an activity. This is not an agent decision.</p><button class="primary" id="demo-next">Continue reading →</button>';
-  else if (decision?.action === 'teach' && step > 0) controls = '<h2>What happened?</h2><p>Teacher: record the learner’s spoken, signed, or assisted response.</p><div class="choices"><button class="secondary" data-response="incorrect">Incorrect</button><button class="primary" data-response="correct">Correct</button><button class="secondary" data-response="help">Help</button></div>';
+  else if (decision?.action === 'teach' && step > 0) controls = '<h2>What happened?</h2><p>Teacher: record the learner’s spoken, signed, or assisted response.</p><label for="response-support">Support used</label><select id="response-support"><option value="unknown">Not recorded</option><option value="none">No support</option><option value="hint">Hint</option><option value="modeled_answer">Answer demonstrated</option></select><div class="choices"><button class="secondary" data-response="incorrect">Incorrect</button><button class="primary" data-response="correct">Correct</button><button class="secondary" data-response="help">Help</button></div>';
   else if (decision) controls = `<aside class="demo-decision"><strong>${decision.action === 'continue' ? 'Continue the story' : 'A short practice moment'}</strong></aside><button class="primary" id="demo-next">Continue reading →</button>`;
   const details = result ? `<details class="demo-decision"><summary>Developer details · Databricks decision</summary><p>${escape(decision.reason)}</p><dl><dt>Model</dt><dd>${escape(result.model)}</dd><dt>Model call + validation</dt><dd>${result.elapsed_ms} ms</dd><dt>Browser round trip</dt><dd>${result.round_trip_ms} ms</dd><dt>Based on learner event</dt><dd>${escape(decision.based_on_event_id || 'No live response yet; synthetic starting history')}</dd><dt>Request</dt><dd>${escape(result.request_id)}</dd></dl></details>` : '';
-  return `<button class="back text-button" id="story-close">← Back to my books</button><p class="tag">The Very Hungry Caterpillar · Live Databricks decisions</p><h1>${heading}</h1><section class="panel demo-scene"><div class="demo-fruit" aria-hidden="true">${fruit}</div><p class="intro">${copy}</p>${activity}${controls}${details}</section><p class="hint">Simulated Braille · Teacher-provided test props · Synthetic starting history: A familiar, P needs practice. Camera and physical Braille are not connected to this story demo. Read the original story from your own book.</p>${!director.storageOK ? '<p role="status">Browser storage is unavailable. This session may not survive a reload.</p>' : ''}`;
+  return `<button class="back text-button" id="story-close">← Back to my books</button><p class="tag">The Very Hungry Caterpillar · Live Databricks decisions</p><h1>${heading}</h1><section class="panel demo-scene"><div class="demo-fruit" aria-hidden="true">${fruit}</div><p class="intro">${copy}</p>${activity}${controls}${details}</section>${sharing}<p class="hint">Simulated Braille · Teacher-provided test props · Synthetic starting history: A familiar, P needs practice. Camera and physical Braille are not connected to this story demo. Read the original story from your own book.</p>${!director.storageOK ? '<p role="status">Browser storage is unavailable. This session may not survive a reload.</p>' : ''}`;
 }
 export function stories() {
   if (opened === 'peter-activities') return peterActivities();
@@ -125,11 +127,26 @@ export function bindStories(main, render, announce) {
     } catch(error){status.textContent=error instanceof RangeError ? 'This EPUB is damaged or unsupported.' : error.message;event.target.disabled=false;event.target.value='';}
   });
   const redrawDemo = () => { if (opened === 'demo' && location.hash === '#stories') show(); };
-  main.querySelector('#open-demo')?.addEventListener('click', () => { opened = 'demo'; void director.outbox.createProfile({profile_id: director.state.profile_id}).catch(() => {}); show(); });
+  const refreshLearningStatus = () => {
+    const outbox = director.outbox;
+    const status = main.querySelector('#learning-status');
+    const error = main.querySelector('#learning-error');
+    if (status) status.textContent = (outbox.uploadsEnabled ? 'Uploads enabled. ' : 'Uploads paused. Existing cloud records are retained. ') + outbox.queuedCount + ' records waiting.';
+    if (error) error.textContent = outbox.error;
+  };
+  main.querySelector('#learning-uploads')?.addEventListener('change', async event => {
+    const checkbox = event.target; checkbox.disabled = true;
+    try { await director.outbox.setUploadsEnabled(checkbox.checked); } catch {} finally { checkbox.disabled = false; refreshLearningStatus(); }
+  });
+  main.querySelector('#learning-retry')?.addEventListener('click', async event => {
+    event.target.disabled = true;
+    try { await director.outbox.flush(); } catch {} finally { event.target.disabled = false; refreshLearningStatus(); }
+  });
+  main.querySelector('#open-demo')?.addEventListener('click', () => { opened = 'demo'; show(); void director.outbox.flush().catch(() => {}).finally(refreshLearningStatus); });
   main.querySelectorAll('[data-open-book]').forEach(button => button.addEventListener('click', () => { director.cancel(); opened = Number(button.dataset.openBook); show(); }));
   main.querySelectorAll('#story-close, #story-close-done').forEach(button => button.addEventListener('click', () => { director.cancel(); opened = null; show(); }));
   main.querySelector('#demo-next')?.addEventListener('click', () => { director.advance(); show(); });
-  main.querySelectorAll('[data-response]').forEach(button => button.addEventListener('click', () => { director.record(button.dataset.response); show(); }));
+  main.querySelectorAll('[data-response]').forEach(button => button.addEventListener('click', () => { director.record(button.dataset.response, main.querySelector('#response-support')?.value || 'unknown'); show(); void director.outbox.flush().catch(() => {}).finally(refreshLearningStatus); }));
   main.querySelector('#demo-restart')?.addEventListener('click', () => { director.restart(); show(); });
   main.querySelector('#decision-retry')?.addEventListener('click', () => director.request(redrawDemo));
   main.querySelector('#decision-skip')?.addEventListener('click', () => { director.skip(); show(); });

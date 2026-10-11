@@ -1,11 +1,13 @@
 import sys
+import json
+from unittest.mock import patch
 import unittest
 from pathlib import Path
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from learning_bridge import LearningError, validate_batch, validate_profile
+from learning_bridge import LearningError, validate_batch, validate_profile, validate_attempts, ingest_attempts
 
 
 def event(profile=None):
@@ -41,6 +43,19 @@ class LearningBridgeTests(unittest.TestCase):
         profile['preferences']['unexpected'] = True
         with self.assertRaises(LearningError):
             validate_profile(profile)
+
+    def test_attempts_use_the_same_validator_as_the_cloud(self):
+        payload = json.loads((ROOT / 'databricks/contracts/v3/examples/rabbit-session.json').read_text())
+        self.assertIs(validate_attempts(payload), payload)
+        payload['attempts'][0]['raw_audio'] = 'not collected'
+        with self.assertRaises(LearningError):
+            validate_attempts(payload)
+
+    def test_mismatched_ack_is_not_forwarded(self):
+        payload = json.loads((ROOT / 'databricks/contracts/v3/examples/rabbit-session.json').read_text())
+        with patch('learning_bridge._invoke', return_value={'schema_version':'3.0','profile_id':payload['profile_id'],'session_id':str(uuid4()),'attempt_ids':[payload['attempts'][0]['attempt_id']]}):
+            with self.assertRaises(LearningError):
+                ingest_attempts(payload)
 
 
 if __name__ == '__main__':

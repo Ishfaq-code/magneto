@@ -1,0 +1,37 @@
+# Learning attempts v3
+
+Status: implemented upload boundary; no deployment or history-to-planner integration implied.
+
+One record describes one observed attempt. Student identity, session identity and schema version travel once per batch. The server restores them on each Delta row. New attempts use stable UUIDs; upload retries reuse those IDs. Session restarts retain the selected browser profile and create a new session ID.
+
+`activity-catalog.json` is immutable by activity reference: changing a target, task, or story context requires a new reference version. Catalog entries contain context once; attempts contain only result, support, assessment and observation time. Unknown activity references and extra fields are rejected. No transcript, raw media, model explanation, timing metric, or device command is accepted.
+
+`support: unknown` means support was not recorded; it must never be counted as independent success. Only `assessment: teacher_confirmed`, `result: correct`, `support: none` counts as an observed independent success. `unconfirmed` assessment requires `unconfirmed` result. Device errors and skipped opportunities stay outside learning attempts. These observations do not establish mastery or causal effects of support.
+
+## Migration from v2
+
+Deploy the consumer with both `/api/learning/events` (v2) and `/api/learning/attempts` (v3) before updating the browser. Existing v2 schemas and queued v2 events remain intact. The browser drains legacy events separately in bounded batches for the explicitly enabled profile (v3 batches also group by session); new responses use v3. Never infer support or assessment from old `correct` events, or merge old profile IDs automatically. Old events remain in `interaction_events_v2`; new observations use `learning_attempts_v3`.
+
+Profiles retain the v2 profile contract. Local saved demo sessions without a profile are restored without discarding their progress. An explicit teacher control enables uploads for this browser profile. Disabling uploads stops subsequent batches; it does not delete records already stored. The MVP has one browser profile, not a multi-student selector.
+
+The outbox keeps records until a matching acknowledgement arrives. Databricks returns IDs only after a successful SQL write and readback; pending, failed, canceled and timed-out statements produce a retryable service error. An identical retry is acknowledged; reusing an ID with different content is rejected. This is single-app serialized ingestion, not a claim of database-enforced UUID uniqueness across independent writers.
+
+Confirmed preferences remain profile data. Personal Intelligence summaries, teacher correction workflows, and reading history into the planner are future work. The existing v1 director decision and snapshot are unchanged.
+
+## Enablement and analysis
+
+Run python3 scripts/prepare_agent.py to package shared adapters and generate both catalog copies.
+Set the existing SQL warehouse in platform/services.toml only when intentionally enabling storage;
+the deployed app's identity needs access to the learning tables. On startup, configured learning storage
+creates missing v2/v3 tables. No deployment, grants, table creation or uploads occur in local checks.
+
+Run npm run check:learning, npm run check:contracts, and the existing reasoning/story checks.
+Only the connected Caterpillar demo produces v3 uploads in this change. The rabbit batch is a validated
+example; the separate Peter Rabbit coach and Orin harness are not wired to durable memory yet.
+
+Useful analysis starts with counts by catalog target/task, support and confirmation, across sessions.
+Join immutable activity references to the catalog rather than parsing their text. Keep attempted
+recognition separate from instruction and unconfirmed responses. Do not compare unlike tasks or
+interpret a within-session improvement as proof that a hint caused learning. Each attempt ID occurs
+once in analysis; idempotent ingestion is essential. The opaque profile ID is a routing identity,
+not independent authentication; the endpoint remains protected by Databricks App authentication.

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {DecisionSession, CONNECTED_KEY} from '../web/learn/decision-session.js';
-import {LearningOutbox, INTELLIGENCE_KEY} from '../web/learn/intelligence.js';
+import {PROFILE_KEY} from '../web/learn/intelligence.js';
 function storage() { const m = new Map([['magneto-stories-v1','keep books'],['magneto-learning-v1','keep progress'],['magneto-caterpillar-demo-v1','keep old demo']]); return {m,getItem:k=>m.get(k),setItem:(k,v)=>m.set(k,v)}; }
 function result(req, action='continue') { return {request_id:req.request_id,session_id:req.session_id,model:'test-model',elapsed_ms:10,decision:{action,passage_id:req.passage_id,target_letter:action==='teach'?'P':null,prompt:action==='teach'?'Feel this letter.':null,reason:'Test transport response.',based_on_event_id:req.events.at(-1)?.event_id??null}}; }
 const response = r => ({ok:true,json:async()=>r});
@@ -44,19 +44,25 @@ test('storage failure keeps working in memory',async()=>{
  const s=session(async(_,o)=>response(result(JSON.parse(o.body))),{storage:{getItem:()=>null,setItem:()=>{throw Error('quota');}}});
  await s.request();assert.equal(s.storageOK,false);assert.equal(s.result.decision.action,'continue');
 });
-test('learning outbox persists until the server acknowledges event IDs',async()=>{
- const store=storage();let calls=0;const id=()=>randomUUID();
- const outbox=new LearningOutbox({storage:store,uuid:id,fetcher:async(_,options)=>{calls++;const body=JSON.parse(options.body);assert.equal(body.schema_version,'2.0');return {ok:true,json:async()=>({accepted:1,duplicates:0,event_ids:[body.events[0].event_id]})};}});
- const event=outbox.enqueue({profile_id:id(),session_id:id(),activity_id:'tuesday_pear',target:'P',outcome:'incorrect'});
- assert.equal(JSON.parse(store.getItem(INTELLIGENCE_KEY)).length,1);await outbox.flush();assert.equal(calls,1);assert.deepEqual(outbox.events,[]);
- assert.equal(event.metadata.source,'browser');
+
+test('restart retains profile while replacing session identity', () => {
+ const store=storage(); const s=session(null,{storage:store});
+ const profile=s.state.profile_id, previous=s.state.session_id;
+ s.restart(); assert.equal(s.state.profile_id,profile); assert.notEqual(s.state.session_id,previous);
+ assert.equal(session(null,{storage:store}).state.profile_id,profile);
 });
-test('learning outbox keeps events after upload failure',async()=>{
- const store=storage();const outbox=new LearningOutbox({storage:store,uuid:randomUUID,fetcher:async()=>({ok:false,json:async()=>({error:'offline'})})});
- outbox.enqueue({profile_id:randomUUID(),session_id:randomUUID(),activity_id:'x'});await assert.rejects(outbox.flush(),/offline/);assert.equal(outbox.events.length,1);
+test('pre-profile saved demo progress survives migration', () => {
+ const store=storage();const old=session(null,{storage:store});old.state.step=1;
+ delete old.state.profile_id;store.setItem(CONNECTED_KEY,JSON.stringify(old.state));store.m.delete(PROFILE_KEY);
+ const restored=session(null,{storage:store});assert.equal(restored.state.step,1);
+ assert.equal(restored.state.session_id,old.state.session_id);assert.ok(restored.state.profile_id);
 });
-test('learning outbox creates a profile through the local bridge',async()=>{
- const profile=randomUUID();let request;
- const outbox=new LearningOutbox({storage:storage(),fetcher:async(_,options)=>{request=JSON.parse(options.body);return {ok:true,json:async()=>({profile_id:profile})};}});
- assert.deepEqual(await outbox.createProfile({profile_id:profile}),{profile_id:profile});assert.equal(request.profile_id,profile);assert.equal(request.consent,'granted');
+test('support accompanies a confirmed response without altering v1 decision events', async () => {
+ const store=storage();const s=session(async(_,o)=>response(result(JSON.parse(o.body),'teach')),{storage:store});
+ s.outbox.profile.uploads_enabled=true;s.outbox.flush=async()=>{};
+ s.state.step=1;await s.request();s.record('correct','hint');
+ const attempt=s.outbox.attempts[0].attempt;
+ assert.equal(attempt.support,'hint');assert.equal(attempt.result,'correct');assert.equal(attempt.assessment,'teacher_confirmed');
+ assert.equal(attempt.attempt_id,s.state.events[0].event_id);
+ assert.deepEqual(Object.keys(s.state.events[0]).sort(),['event_id','passage_id','response','target_letter']);
 });
