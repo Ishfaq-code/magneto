@@ -116,10 +116,10 @@ The cloud consumer needs the regenerated catalog deployed before new references 
 failed acknowledgements keep attempts queued. Deployment and cloud-history readback are not
 part of this local layer. No uploads are enabled automatically.
 
-## Word emphasis beta
+## Word emphasis
 
-Disabled by default for each new story session. The educator enables it under Beta features;
-models cannot enable it. `propose_word_emphasis` accepts only activity `emphasize` and an approved
+Enabled by default for each new story session. The educator can disable it under Word activities;
+models cannot change that setting. `propose_word_emphasis` accepts only activity `emphasize` and an approved
 multi-letter keyword at the current checkpoint. Prompt and hint use the same look-ahead audio
 cache. It counts toward the existing activity budget and requires educator approval.
 
@@ -127,14 +127,18 @@ cache. It counts toward the existing activity budget and requires educator appro
 1,500 ms letter hold, 300 ms gap, and the intended `SPELL <keyword>` command. This is a preview
 payload, not a serial write, calibrated device timing or readiness acknowledgement. Repeated
 letters remain separate frames. The educator Start action selects this preparation tool for
-beta proposals and retains the existing tactile-material confirmation.
+word-emphasis proposals and retains the existing tactile-material confirmation.
 
 The panel shows the ordered letters and timing. No timed single-cell animation or physical
 playback is implemented here. The existing SerialCell/firmware sequencer can be connected later;
 no new firmware protocol is required for timed spelling. Learner-paced stepping remains separate.
 
-Disabling beta clears the proposal and invalidates cached plans through policy/revision checks.
+Disabling word emphasis clears the proposal and invalidates cached plans through policy/revision checks.
 Exposure telemetry uses immutable `emphasize-<word>@1` references and task `emphasize` rather
 than identify/match. Review scheduling treats it as exposure, not recognition mastery. Deploy
 the updated cloud catalog before uploading these new references. No end-user uploads are enabled
-by the beta switch.
+by the word-activity setting.
+
+Release migration: the local session policy is now `word_emphasis_enabled` and the educator action
+is `set_word_emphasis`. Restart the local server and reload the reader together. MCP proposal and
+sequence tool signatures, activity references and telemetry meanings are unchanged.

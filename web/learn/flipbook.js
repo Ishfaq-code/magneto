@@ -1,6 +1,6 @@
 import { createPageTurnSound } from './page-turn-sound.js';
 import { mountNarration } from './narration.js?v=autoplay-1';
-import { mountStoryCoach } from './story-coach.js?v=word-beta-1';
+import { mountStoryCoach } from './story-coach.js?v=word-activities-1';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
   const root = new DOMParser().parseFromString(html, 'text/html').body;

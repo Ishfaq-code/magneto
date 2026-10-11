@@ -24,7 +24,7 @@ def allowed_tools(context):
     if context['activities_started'] >= context['policy']['max_activities']:
         return {'recommend_continue'}
     tools={'propose_activity', 'recommend_continue'}
-    if context['policy'].get('word_emphasis_beta') and any(len(t)>1 for t in context['opportunity']['targets']):tools.add('propose_word_emphasis')
+    if context['policy'].get('word_emphasis_enabled') and any(len(t)>1 for t in context['opportunity']['targets']):tools.add('propose_word_emphasis')
     return tools
 
 

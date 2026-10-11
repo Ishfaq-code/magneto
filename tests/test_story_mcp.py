@@ -29,8 +29,8 @@ class ProtocolTests(unittest.TestCase):
     def tearDownClass(cls):cls.server.shutdown();cls.server.server_close();cls.thread.join()
     def setUp(self):
         self.s=controller.create();self.s=controller.call(self.s['session_id'],0,'set_context',{'passage_id':'rabbit'},actor='teacher')
-    def test_beta_word_proposal_executes_through_mcp(self):
-        self.s=controller.call(self.s['session_id'],self.s['revision'],'set_word_emphasis_beta',{'enabled':True},actor='teacher')
+    def test_word_proposal_executes_through_mcp(self):
+        self.s=controller.call(self.s['session_id'],self.s['revision'],'set_word_emphasis',{'enabled':True},actor='teacher')
         def fixture(messages):
             data=json.loads(messages[-1]['content'])
             self.assertIn('propose_word_emphasis',[t['name'] for t in data['available_mcp_tools']])
