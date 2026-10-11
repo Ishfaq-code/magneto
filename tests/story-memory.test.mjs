@@ -27,7 +27,7 @@ test('opted-in telemetry retains observation identity and time',async()=>{
  s.setItem(PROFILE_KEY,JSON.stringify({profile_id:memory.profileId,uploads_enabled:true}));
  memory.outbox.profileReady=true;
  let sent;
- memory.outbox.fetcher=async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({attempt_ids:sent.attempts.map(a=>a.attempt_id)})};};
+ memory.outbox.fetcher=async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({schema_version:'3.0',profile_id:sent.profile_id,session_id:sent.session_id,attempt_ids:sent.attempts.map(a=>a.attempt_id)})};};
  const id='00000000-0000-4000-8000-000000000001';
  memory.remember([{id,observed_at:'2026-01-01T12:00:00+00:00',passage_id:'gate',target:'g',activity:'match',outcome:'with_help',hint_used:false}], '00000000-0000-4000-8000-000000000003');
  await memory.outbox.pending;
