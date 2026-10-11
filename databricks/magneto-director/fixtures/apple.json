@@ -1,0 +1,39 @@
+{
+  "expected_action": "continue",
+  "snapshot": {
+    "request_id": "e50ea229-31ab-4417-9bc3-db3041e25aae",
+    "session_id": "0dda506c-0ebb-4981-8437-6d3a7ead3b4d",
+    "passage_id": "monday_apple",
+    "events": [],
+    "current_passage": {
+      "summary": "The teacher reads the apple passage from their own book.",
+      "word": "apple",
+      "letter": "A"
+    },
+    "upcoming_opportunities": [
+      {
+        "passage_id": "tuesday_pear",
+        "summary": "The teacher reads the pear passage from their own book.",
+        "word": "pear",
+        "letter": "P"
+      },
+      {
+        "passage_id": "wednesday_plum",
+        "summary": "The teacher reads the plum passage from their own book.",
+        "word": "plum",
+        "letter": "P"
+      }
+    ],
+    "learner_history": {
+      "synthetic": true,
+      "A": "familiar",
+      "P": "needs_practice"
+    },
+    "available_props": [
+      "apple",
+      "pear",
+      "plum"
+    ],
+    "props_source": "teacher-supplied test data; not camera observations"
+  }
+}

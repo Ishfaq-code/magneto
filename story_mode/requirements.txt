@@ -1,0 +1,3 @@
+mcp>=1.28,<2
+databricks-sdk==0.151.0
+requests==2.34.2

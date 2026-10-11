@@ -1,0 +1,1 @@
+Read AGENTS.md, AGENTKIT_CONTRACT.md, and README.md in this directory. This is a stateless custom-server Magneto agent, not the generated durable-runtime example. Shared service source is ../platform; regenerate deployment copies with scripts/prepare_agent.py from the repository root.

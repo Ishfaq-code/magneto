@@ -1,0 +1,19 @@
+bundle:
+  name: magneto-research
+
+include:
+  - resources/*.yml
+
+workspace:
+  host: https://dbc-129a8d44-1940.cloud.databricks.com
+
+artifacts:
+  research:
+    type: whl
+    path: .
+    build: python3 -m pip wheel --no-deps . --wheel-dir dist
+
+targets:
+  dev:
+    default: true
+    mode: development

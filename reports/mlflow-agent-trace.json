@@ -1,0 +1,231 @@
+{
+  "verified": true,
+  "experiment_id": "948045133158359",
+  "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+  "started_ms": 1791683890806,
+  "result": {
+    "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+    "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133",
+    "decision": {
+      "action": "teach",
+      "passage_id": "wednesday_plum",
+      "target_letter": "P",
+      "prompt": "Feel the Braille for P and tell me which letter it is.",
+      "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+      "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+    },
+    "model": "databricks-qwen3-next-80b-a3b-instruct",
+    "elapsed_ms": 2281
+  },
+  "trace_id": "trace:/workspace.magneto.948045133158359/a1ae3997d1332a2daecb0e4517a3f432",
+  "span_count": 3,
+  "spans": [
+    {
+      "name": "magneto_decision",
+      "inputs": {
+        "available_props": [
+          "apple",
+          "pear",
+          "plum"
+        ],
+        "current_passage": {
+          "letter": "P",
+          "summary": "The teacher reads the plum passage from their own book.",
+          "word": "plum"
+        },
+        "events": [
+          {
+            "event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+            "passage_id": "tuesday_pear",
+            "response": "incorrect",
+            "target_letter": "P"
+          }
+        ],
+        "learner_history": {
+          "A": "familiar",
+          "P": "needs_practice",
+          "synthetic": true
+        },
+        "passage_id": "wednesday_plum",
+        "props_source": "teacher-supplied test data; not camera observations",
+        "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+        "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133",
+        "upcoming_opportunities": []
+      },
+      "outputs": {
+        "decision": {
+          "action": "teach",
+          "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+          "passage_id": "wednesday_plum",
+          "prompt": "Feel the Braille for P and tell me which letter it is.",
+          "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+          "target_letter": "P"
+        },
+        "elapsed_ms": 2281,
+        "model": "databricks-qwen3-next-80b-a3b-instruct",
+        "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+        "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133"
+      },
+      "attributes": {
+        "model": "databricks-qwen3-next-80b-a3b-instruct",
+        "mlflow.spanOutputs": "{\"decision\":{\"action\":\"teach\",\"based_on_event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"wednesday_plum\",\"prompt\":\"Feel the Braille for P and tell me which letter it is.\",\"reason\":\"The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.\",\"target_letter\":\"P\"},\"elapsed_ms\":2281,\"model\":\"databricks-qwen3-next-80b-a3b-instruct\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\"}",
+        "mlflow.traceRequestId": "trace:/workspace.magneto.948045133158359/a1ae3997d1332a2daecb0e4517a3f432",
+        "mlflow.spanLogLevel": "10",
+        "elapsed_ms": "2281",
+        "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+        "mlflow.spanType": "UNKNOWN",
+        "mlflow.spanInputs": "{\"available_props\":[\"apple\",\"pear\",\"plum\"],\"current_passage\":{\"letter\":\"P\",\"summary\":\"The teacher reads the plum passage from their own book.\",\"word\":\"plum\"},\"events\":[{\"event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"tuesday_pear\",\"response\":\"incorrect\",\"target_letter\":\"P\"}],\"learner_history\":{\"A\":\"familiar\",\"P\":\"needs_practice\",\"synthetic\":true},\"passage_id\":\"wednesday_plum\",\"props_source\":\"teacher-supplied test data; not camera observations\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\",\"upcoming_opportunities\":[]}",
+        "session.id": "ffa86447-3646-4fa5-8f1d-299d62648133"
+      }
+    },
+    {
+      "name": "LangGraph",
+      "inputs": {
+        "snapshot": {
+          "available_props": [
+            "apple",
+            "pear",
+            "plum"
+          ],
+          "current_passage": {
+            "letter": "P",
+            "summary": "The teacher reads the plum passage from their own book.",
+            "word": "plum"
+          },
+          "events": [
+            {
+              "event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+              "passage_id": "tuesday_pear",
+              "response": "incorrect",
+              "target_letter": "P"
+            }
+          ],
+          "learner_history": {
+            "A": "familiar",
+            "P": "needs_practice",
+            "synthetic": true
+          },
+          "passage_id": "wednesday_plum",
+          "props_source": "teacher-supplied test data; not camera observations",
+          "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+          "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133",
+          "upcoming_opportunities": []
+        }
+      },
+      "outputs": {
+        "result": {
+          "decision": {
+            "action": "teach",
+            "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+            "passage_id": "wednesday_plum",
+            "prompt": "Feel the Braille for P and tell me which letter it is.",
+            "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+            "target_letter": "P"
+          },
+          "elapsed_ms": 2281,
+          "model": "databricks-qwen3-next-80b-a3b-instruct",
+          "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+          "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133"
+        },
+        "snapshot": {
+          "available_props": [
+            "apple",
+            "pear",
+            "plum"
+          ],
+          "current_passage": {
+            "letter": "P",
+            "summary": "The teacher reads the plum passage from their own book.",
+            "word": "plum"
+          },
+          "events": [
+            {
+              "event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+              "passage_id": "tuesday_pear",
+              "response": "incorrect",
+              "target_letter": "P"
+            }
+          ],
+          "learner_history": {
+            "A": "familiar",
+            "P": "needs_practice",
+            "synthetic": true
+          },
+          "passage_id": "wednesday_plum",
+          "props_source": "teacher-supplied test data; not camera observations",
+          "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+          "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133",
+          "upcoming_opportunities": []
+        }
+      },
+      "attributes": {
+        "mlflow.spanOutputs": "{\"result\":{\"decision\":{\"action\":\"teach\",\"based_on_event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"wednesday_plum\",\"prompt\":\"Feel the Braille for P and tell me which letter it is.\",\"reason\":\"The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.\",\"target_letter\":\"P\"},\"elapsed_ms\":2281,\"model\":\"databricks-qwen3-next-80b-a3b-instruct\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\"},\"snapshot\":{\"available_props\":[\"apple\",\"pear\",\"plum\"],\"current_passage\":{\"letter\":\"P\",\"summary\":\"The teacher reads the plum passage from their own book.\",\"word\":\"plum\"},\"events\":[{\"event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"tuesday_pear\",\"response\":\"incorrect\",\"target_letter\":\"P\"}],\"learner_history\":{\"A\":\"familiar\",\"P\":\"needs_practice\",\"synthetic\":true},\"passage_id\":\"wednesday_plum\",\"props_source\":\"teacher-supplied test data; not camera observations\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\",\"upcoming_opportunities\":[]}}",
+        "mlflow.traceRequestId": "trace:/workspace.magneto.948045133158359/a1ae3997d1332a2daecb0e4517a3f432",
+        "mlflow.spanLogLevel": "10",
+        "metadata": "{\"ls_integration\":\"langgraph\"}",
+        "mlflow.spanType": "CHAIN",
+        "mlflow.spanInputs": "{\"snapshot\":{\"available_props\":[\"apple\",\"pear\",\"plum\"],\"current_passage\":{\"letter\":\"P\",\"summary\":\"The teacher reads the plum passage from their own book.\",\"word\":\"plum\"},\"events\":[{\"event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"tuesday_pear\",\"response\":\"incorrect\",\"target_letter\":\"P\"}],\"learner_history\":{\"A\":\"familiar\",\"P\":\"needs_practice\",\"synthetic\":true},\"passage_id\":\"wednesday_plum\",\"props_source\":\"teacher-supplied test data; not camera observations\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\",\"upcoming_opportunities\":[]}}"
+      }
+    },
+    {
+      "name": "decide",
+      "inputs": {
+        "snapshot": {
+          "available_props": [
+            "apple",
+            "pear",
+            "plum"
+          ],
+          "current_passage": {
+            "letter": "P",
+            "summary": "The teacher reads the plum passage from their own book.",
+            "word": "plum"
+          },
+          "events": [
+            {
+              "event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+              "passage_id": "tuesday_pear",
+              "response": "incorrect",
+              "target_letter": "P"
+            }
+          ],
+          "learner_history": {
+            "A": "familiar",
+            "P": "needs_practice",
+            "synthetic": true
+          },
+          "passage_id": "wednesday_plum",
+          "props_source": "teacher-supplied test data; not camera observations",
+          "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+          "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133",
+          "upcoming_opportunities": []
+        }
+      },
+      "outputs": {
+        "result": {
+          "decision": {
+            "action": "teach",
+            "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77",
+            "passage_id": "wednesday_plum",
+            "prompt": "Feel the Braille for P and tell me which letter it is.",
+            "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+            "target_letter": "P"
+          },
+          "elapsed_ms": 2281,
+          "model": "databricks-qwen3-next-80b-a3b-instruct",
+          "request_id": "5a54f64d-f516-4edb-a7b3-ddd622fdab28",
+          "session_id": "ffa86447-3646-4fa5-8f1d-299d62648133"
+        }
+      },
+      "attributes": {
+        "mlflow.spanOutputs": "{\"result\":{\"decision\":{\"action\":\"teach\",\"based_on_event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"wednesday_plum\",\"prompt\":\"Feel the Braille for P and tell me which letter it is.\",\"reason\":\"The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.\",\"target_letter\":\"P\"},\"elapsed_ms\":2281,\"model\":\"databricks-qwen3-next-80b-a3b-instruct\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\"}}",
+        "mlflow.traceRequestId": "trace:/workspace.magneto.948045133158359/a1ae3997d1332a2daecb0e4517a3f432",
+        "mlflow.spanLogLevel": "10",
+        "metadata": "{\"langgraph_checkpoint_ns\":\"decide:4142dbbb-ca6c-1779-36cc-a70c196b8c4b\",\"langgraph_node\":\"decide\",\"langgraph_path\":[\"__pregel_pull\",\"decide\"],\"langgraph_step\":1,\"langgraph_triggers\":[\"branch:to:decide\"],\"ls_integration\":\"langgraph\"}",
+        "mlflow.spanType": "CHAIN",
+        "mlflow.spanInputs": "{\"snapshot\":{\"available_props\":[\"apple\",\"pear\",\"plum\"],\"current_passage\":{\"letter\":\"P\",\"summary\":\"The teacher reads the plum passage from their own book.\",\"word\":\"plum\"},\"events\":[{\"event_id\":\"23e88ee2-1386-4632-90bb-051b2ace8a77\",\"passage_id\":\"tuesday_pear\",\"response\":\"incorrect\",\"target_letter\":\"P\"}],\"learner_history\":{\"A\":\"familiar\",\"P\":\"needs_practice\",\"synthetic\":true},\"passage_id\":\"wednesday_plum\",\"props_source\":\"teacher-supplied test data; not camera observations\",\"request_id\":\"5a54f64d-f516-4edb-a7b3-ddd622fdab28\",\"session_id\":\"ffa86447-3646-4fa5-8f1d-299d62648133\",\"upcoming_opportunities\":[]}}"
+      }
+    }
+  ],
+  "url": "https://dbc-129a8d44-1940.cloud.databricks.com/ml/experiments/948045133158359/traces/a1ae3997d1332a2daecb0e4517a3f432"
+}

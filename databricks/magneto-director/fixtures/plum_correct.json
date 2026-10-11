@@ -1,0 +1,33 @@
+{
+  "expected_action": "continue",
+  "snapshot": {
+    "request_id": "0de2d752-5e26-4779-ade0-33e64aa24da1",
+    "session_id": "1570c96e-7a09-4418-adcd-6aa1fa065725",
+    "passage_id": "wednesday_plum",
+    "events": [
+      {
+        "event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "response": "correct"
+      }
+    ],
+    "current_passage": {
+      "summary": "The teacher reads the plum passage from their own book.",
+      "word": "plum",
+      "letter": "P"
+    },
+    "upcoming_opportunities": [],
+    "learner_history": {
+      "synthetic": true,
+      "A": "familiar",
+      "P": "needs_practice"
+    },
+    "available_props": [
+      "apple",
+      "pear",
+      "plum"
+    ],
+    "props_source": "teacher-supplied test data; not camera observations"
+  }
+}

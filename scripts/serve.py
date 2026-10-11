@@ -1,14 +1,76 @@
-"""Serve the viewer locally, independent of the current working directory."""
+"""Serve the static viewer and a local, same-origin Databricks decision bridge."""
 from functools import partial
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--port', type=int, default=8080)
-args = parser.parse_args()
-web = Path(__file__).resolve().parents[1] / 'web'
-print(f'Magneto: http://127.0.0.1:{args.port}/', flush=True)
-try:
-    ThreadingHTTPServer(('127.0.0.1', args.port), partial(SimpleHTTPRequestHandler, directory=str(web))).serve_forever()
-except KeyboardInterrupt:
-    pass
+import json
+import threading
+from urllib.parse import urlparse
+
+from decision_bridge import BridgeError, ContractError, request_decision
+from story_bridge import handle as handle_story
+
+WEB = Path(__file__).resolve().parents[1] / 'web'
+_pending = threading.Lock()
+
+
+class Handler(SimpleHTTPRequestHandler):
+    def _json(self, status, value):
+        body=json.dumps(value).encode()
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type','application/json')
+            self.send_header('Cache-Control','no-store')
+            self.send_header('Content-Length',str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # Navigation/cancellation must not turn a late result into another activity.
+
+    def do_POST(self):
+        if handle_story(self): return
+        if self.path != '/api/decision':
+            return self._json(404,{'error':'Unknown API route.'})
+        host=self.headers.get('Host','')
+        if host not in (f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}'):
+            return self._json(403,{'error':'Local requests only.'})
+        origin=self.headers.get('Origin')
+        if origin and origin != 'http://'+host:
+            return self._json(403,{'error':'Same-origin requests only.'})
+        if self.headers.get_content_type() != 'application/json':
+            return self._json(415,{'error':'Send application/json.'})
+        try:
+            length=int(self.headers.get('Content-Length','0'))
+            if not 0 < length <= 16384:
+                return self._json(413,{'error':'Invalid request size.'})
+            self.connection.settimeout(5)
+            payload=json.loads(self.rfile.read(length))
+        except (ValueError, TimeoutError, OSError):
+            return self._json(400,{'error':'Invalid JSON request.'})
+        if not _pending.acquire(blocking=False):
+            return self._json(409,{'error':'A decision is already pending. Retry when it finishes.'})
+        try:
+            self._json(200,request_decision(payload))
+        except ContractError as exc:
+            self._json(400,{'error':str(exc)})
+        except BridgeError as exc:
+            self._json(exc.status,{'error':str(exc)})
+        except Exception:
+            self._json(502,{'error':'The decision service is unavailable. No activity was started.'})
+        finally:
+            _pending.release()
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--port',type=int,default=8080)
+    args=parser.parse_args()
+    print(f'Magneto: http://127.0.0.1:{args.port}/',flush=True)
+    try:
+        ThreadingHTTPServer(('127.0.0.1',args.port),partial(Handler,directory=str(WEB))).serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__=='__main__':
+    main()

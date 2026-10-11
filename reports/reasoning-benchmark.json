@@ -1,0 +1,604 @@
+{
+  "mode": "deployed",
+  "first_request": {
+    "fixture": "apple",
+    "ok": true,
+    "expected_action": "continue",
+    "matches_expected": true,
+    "request_id": "88e9068a-53fc-47bd-ab49-430081c1e1e0",
+    "session_id": "a9faa6c8-6a08-49fd-99cd-e889891b9969",
+    "decision": {
+      "action": "continue",
+      "passage_id": "monday_apple",
+      "target_letter": null,
+      "prompt": null,
+      "reason": "The target letter A is familiar and there are no recent events indicating difficulty, so teaching is not needed.",
+      "based_on_event_id": null
+    },
+    "model": "databricks-qwen3-next-80b-a3b-instruct",
+    "elapsed_ms": 1925,
+    "round_trip_ms": 5099
+  },
+  "summary": {
+    "requests": 30,
+    "successes": 30,
+    "failures": 0,
+    "behavior_mismatches": 0,
+    "median_ms": 3396.0,
+    "p95_ms": 4094,
+    "first_request_ms": 5099,
+    "first_request_ok": true
+  },
+  "requests": [
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "01fb0b44-1991-4631-9559-0b9af8ace244",
+      "session_id": "b35dc532-3681-4c88-9027-2a1b3e118e60",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is familiar with no recent events, so teaching is not needed.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1921,
+      "round_trip_ms": 3821
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "0f723bb7-aa05-4abb-a260-f6befde0d8ac",
+      "session_id": "1888a28c-baf1-417e-875c-0e64bc730584",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is marked as needs_practice in learner history.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 2365,
+      "round_trip_ms": 4277
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "37c76f8a-6302-47a2-8b51-52473b09bfe2",
+      "session_id": "7dae4d8b-fc98-4363-93c1-22133f6c3c4d",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, overriding its needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1449,
+      "round_trip_ms": 3308
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "1438c58a-e788-43d2-b975-f5a153fcd474",
+      "session_id": "54feca79-4daf-497f-a7e2-aa2ebf517e12",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P has a needs_practice history and no recent successful recognition events.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1770,
+      "round_trip_ms": 3619
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "8c05e242-b655-4197-8eb9-22f054d06777",
+      "session_id": "24190b58-4311-4549-8f9f-9df55e78b5ed",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event in tuesday_pear and is marked as needs_practice in learner_history, requiring a brief recognition activity.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1822,
+      "round_trip_ms": 3706
+    },
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "2737b282-aa53-4d4a-998c-cdf77140861f",
+      "session_id": "6c09e854-c4d9-401a-9569-81a176c35524",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is familiar with no recent events, so teaching is not needed.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1397,
+      "round_trip_ms": 3159
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "d73d5a44-b4eb-4351-b770-67d76d162cb7",
+      "session_id": "00490472-e4be-4932-a6d0-d6314ea9e007",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P had a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1573,
+      "round_trip_ms": 3419
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "cca6b856-b9a0-4201-9d22-7196021ecb38",
+      "session_id": "fcdfc4f3-ccf2-466b-b9b0-66a23893e7e4",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, which overrides the needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1809,
+      "round_trip_ms": 3558
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "f47c4d45-09e5-443e-b99e-0dfef2c71fa5",
+      "session_id": "13089351-0a52-44a4-ae3c-0091997c15fb",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P is marked as needing practice with no recent successful recognition events.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1793,
+      "round_trip_ms": 3718
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "0cc19aa1-d0af-4814-ad7a-1cfa9cf9b57b",
+      "session_id": "86c22572-efe2-499c-8abc-89569cae0c63",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event in tuesday_pear and is marked as needs_practice in learner_history, requiring a brief recognition activity.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1870,
+      "round_trip_ms": 3654
+    },
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "2f310b41-64c9-4f57-b7b2-a169290bc382",
+      "session_id": "9e114fa0-8af3-4685-9b76-c3bd8f6712ad",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is familiar and there are no recent events indicating difficulty, so teaching is not required.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1068,
+      "round_trip_ms": 2964
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "5a17ae4e-c6b5-4376-9b27-51e39330a854",
+      "session_id": "c6004f72-c9cb-4cbf-ba3d-120183da5e3e",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1822,
+      "round_trip_ms": 3717
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "6e827be9-dddc-46e9-8be6-6a49072d7d5c",
+      "session_id": "4f943639-8360-4a46-ae4b-13c7f3493009",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, which overrides the needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1342,
+      "round_trip_ms": 3129
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "249c6054-176d-4a45-b10c-4a57253e43ef",
+      "session_id": "93f08478-f2ea-41d9-94da-286481ba89b5",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille P and tell me which letter it is.",
+        "reason": "The target letter P is marked as needs_practice in learner history with no recent events indicating successful recognition.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1213,
+      "round_trip_ms": 2998
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "189cbcd2-aa46-4f04-a884-e50ab4492018",
+      "session_id": "9221c000-4aeb-470e-acc4-cc4988ef6bf7",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event in tuesday_pear and is marked as needs_practice in learner_history with no recent correct recognition.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1563,
+      "round_trip_ms": 3310
+    },
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "303eec98-7f46-4b08-9f94-4cd40f7a8553",
+      "session_id": "8d232d44-7f8a-4aa3-9763-1f7ad64544ae",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is familiar and there are no recent events indicating difficulty, so teaching is not needed.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1343,
+      "round_trip_ms": 3097
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "4c0d4acc-b733-4b1b-ba0f-119fc1c3d12e",
+      "session_id": "8e36775a-87ac-41f5-8f32-97376d49a4e8",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1855,
+      "round_trip_ms": 3643
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "98ea0485-ab18-4c02-bb9e-4863f563518c",
+      "session_id": "e062945f-0ed3-4bd6-8ab8-6ba236676ce4",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, which overrides the needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1489,
+      "round_trip_ms": 3373
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "3d6b8029-ef4d-4750-b19e-beac1fb976cf",
+      "session_id": "5ac4938e-cabf-4c91-96f4-3b0308aa6847",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille P and tell me which letter it is.",
+        "reason": "The target letter P is marked as needing practice with no recent successful recognition events.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1455,
+      "round_trip_ms": 3219
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "d5b0760e-481e-4d69-a593-5d1e8291f6ca",
+      "session_id": "0ba0290e-8342-45ed-992f-8f27a2d332a3",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event from tuesday_pear and is marked as needs_practice in learner history with no recent correct recognition.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1917,
+      "round_trip_ms": 4094
+    },
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "84cf49b2-780f-4e57-820a-83ff46512c6e",
+      "session_id": "e56e65d3-41d1-4a75-8e7a-83b5e3d623b2",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is familiar with no recent events indicating difficulty, so teaching is not required.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1051,
+      "round_trip_ms": 2835
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "41fee6ad-e123-41dd-a17a-9404ef3458a6",
+      "session_id": "561c6866-65e9-4fe8-9d4d-8332c3842526",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The learner incorrectly recognized P in the previous session, and P is the current target letter with no recent correct recognition.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 2254,
+      "round_trip_ms": 3948
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "dc79503c-1660-4d7d-83a0-32b751795596",
+      "session_id": "d1f09dc4-c704-46d9-b464-8be1ecb0b346",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, which overrides the needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1355,
+      "round_trip_ms": 3053
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "b78ac971-1ded-4901-92ce-4f4d37763167",
+      "session_id": "a2e6dc3f-132c-4651-b343-80e8dd906a29",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P is marked as needs_practice in learner history with no recent success events to override this status.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1804,
+      "round_trip_ms": 3543
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "644062dc-e40f-4c91-b935-4a61ff9aceac",
+      "session_id": "0a9138ac-7ef7-469a-8b9d-860e9c3beeac",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P on the plum prop and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event in tuesday_pear and is marked as needs_practice in learner history, requiring a brief recognition activity.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1897,
+      "round_trip_ms": 3636
+    },
+    {
+      "fixture": "apple",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "37796c58-bccb-406e-8a7a-8151aa44b884",
+      "session_id": "a75d087b-285b-4613-831c-bb5470a89820",
+      "decision": {
+        "action": "continue",
+        "passage_id": "monday_apple",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter A is marked as familiar in learner history with no recent events indicating difficulty, so teaching is not needed.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1131,
+      "round_trip_ms": 2864
+    },
+    {
+      "fixture": "plum_incorrect",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "3302239c-c27a-490b-9615-2f3f0bdf5d24",
+      "session_id": "76111e1d-647d-40b2-bd0c-5f39697412c0",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille for P and tell me which letter it is.",
+        "reason": "The target letter P has a recent incorrect recognition in the tuesday_pear passage and is still marked as needs_practice in learner history.",
+        "based_on_event_id": "23e88ee2-1386-4632-90bb-051b2ace8a77"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1548,
+      "round_trip_ms": 3267
+    },
+    {
+      "fixture": "plum_correct",
+      "ok": true,
+      "expected_action": "continue",
+      "matches_expected": true,
+      "request_id": "1c880ed3-89ab-4cf5-849c-2e0c761aba59",
+      "session_id": "37764bca-91b2-49d4-844c-9abea67f2ecf",
+      "decision": {
+        "action": "continue",
+        "passage_id": "wednesday_plum",
+        "target_letter": null,
+        "prompt": null,
+        "reason": "The target letter P was recently recognized correctly in the tuesday_pear passage, which overrides the needs_practice history.",
+        "based_on_event_id": "e5527dfb-25fd-4b88-a8ac-8f2eb73dbd53"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1400,
+      "round_trip_ms": 3253
+    },
+    {
+      "fixture": "pear",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "a803ee41-a2d2-4860-9b27-0b32ee0b9bc1",
+      "session_id": "9921b0f6-77aa-466e-b684-7d59a4f5dbbd",
+      "decision": {
+        "action": "teach",
+        "passage_id": "tuesday_pear",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P has a needs_practice history and no recent successful recognition events.",
+        "based_on_event_id": null
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1197,
+      "round_trip_ms": 3067
+    },
+    {
+      "fixture": "plum_help",
+      "ok": true,
+      "expected_action": "teach",
+      "matches_expected": true,
+      "request_id": "6b3c301f-a9d0-4e18-903b-aecc7668f695",
+      "session_id": "8a1ff30c-5998-4738-abc4-d23b50606ab6",
+      "decision": {
+        "action": "teach",
+        "passage_id": "wednesday_plum",
+        "target_letter": "P",
+        "prompt": "Feel the Braille letter P and tell me which letter it is.",
+        "reason": "The target letter P has a recent help event in tuesday_pear and is marked as needs_practice in learner_history, requiring a brief recognition activity.",
+        "based_on_event_id": "158f9af6-c8d8-4253-9eac-8df5b1b05ad8"
+      },
+      "model": "databricks-qwen3-next-80b-a3b-instruct",
+      "elapsed_ms": 1850,
+      "round_trip_ms": 3681
+    }
+  ]
+}
