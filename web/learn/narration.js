@@ -9,7 +9,7 @@ export function matchNarration(manifest, bookId, text) {
   return passage;
 }
 
-export function mountNarration({player, bookId, onPlay}) {
+export function mountNarration({player, bookId, onPlay, onEnded = () => {}}) {
   if (!/^[a-zA-Z0-9_-]{1,100}$/.test(bookId)) return {context(){}, pause(){}, dispose(){}};
   const area = document.createElement('div'); area.hidden = true; area.className = 'local-narration';
   const label = document.createElement('span'); label.textContent = 'Recorded narration';
@@ -28,6 +28,7 @@ export function mountNarration({player, bookId, onPlay}) {
       if (!disposed && source === next && audio.paused) label.textContent = 'Press play to hear this page';
     });
   }
+  audio.onended = () => {if(!disposed)onEnded();};
   audio.onplay = () => { onPlay(); window.speechSynthesis?.cancel(); };
   audio.onerror = () => { label.textContent = 'Narration unavailable. Continue reading or rebuild this audio.'; };
   fetch(`./narration/${bookId}/manifest.json`, {cache:'no-store'})

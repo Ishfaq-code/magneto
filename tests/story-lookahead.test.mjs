@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createLookahead,opportunityFor} from '../web/learn/story-lookahead.js';
+import {createLookahead,opportunityFor,plannedQuestion} from '../web/learn/story-lookahead.js';
 import {feedbackFor} from '../web/learn/interaction-player.js';
 const state={session_id:'s',revision:1,phase:'reading',passage_id:null,observations:[],activities_started:0,policy:{}};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -28,4 +28,14 @@ test('feedback never grades a transcript or treats try-later as incorrect',()=>{
  assert.equal(feedbackFor('give_hint'),null);
  assert.equal(opportunityFor('page-03',[{id:'rabbit',page_id:'page-03'}]),'rabbit');
  assert.equal(opportunityFor('four little Rabbits',[{id:'rabbit',page_id:'page-03'}]),null);
+});
+
+test('question markers track only ready or active questions in the current window',()=>{
+ const candidate={state:null,passage:null,windowTargets:['rabbit'],status:'ready',preview:{tool:'propose_activity'},target:'rabbit'};
+ assert.equal(plannedQuestion(candidate),'rabbit');
+ for(const change of [{status:'preparing'},{status:'failed'},{preview:{tool:'recommend_continue'}},{preview:{tool:'propose_word_emphasis'}},{windowTargets:[]}])assert.equal(plannedQuestion({...candidate,...change}),null);
+ const active={...candidate,status:'idle',passage:'rabbit',state:{passage_id:'rabbit',phase:'waiting_response',proposal:{activity:'identify'}}};
+ assert.equal(plannedQuestion(active),'rabbit');
+ assert.equal(plannedQuestion({...active,state:{...active.state,phase:'complete'}}),null);
+ assert.equal(plannedQuestion({...active,passage:'gate'}),null);
 });

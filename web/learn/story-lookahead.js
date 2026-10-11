@@ -29,3 +29,9 @@ export function createLookahead(api, changed = () => {}) {
   }
   return {prepare,apply,invalidate,get preview(){return entry?.preview;},get target(){return entry?.target;},get status(){return entry?.status||'idle';}};
 }
+
+export function plannedQuestion({state, passage, windowTargets, status, preview, target}) {
+  if(state?.passage_id===passage && ['proposed','awaiting_tactile','ready','waiting_response','awaiting_confirmation'].includes(state?.phase)
+      && ['introduce','identify','match'].includes(state?.proposal?.activity))return passage;
+  return status==='ready' && preview?.tool==='propose_activity' && windowTargets.includes(target)?target:null;
+}

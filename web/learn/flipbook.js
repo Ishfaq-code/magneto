@@ -1,6 +1,6 @@
 import { createPageTurnSound } from './page-turn-sound.js';
-import { mountNarration } from './narration.js?v=autoplay-1';
-import { mountStoryCoach } from './story-coach.js?v=word-activities-1';
+import { mountNarration } from './narration.js?v=question-stops-1';
+import { mountStoryCoach } from './story-coach.js?v=question-stops-1';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
   const root = new DOMParser().parseFromString(html, 'text/html').body;
@@ -33,8 +33,21 @@ export function mountFlipbook({main, book, content, save, announce}) {
   let turning=false, disposed=false, animation=null, overlay=null, resizeFrame=0, generation=0;
   if (book.finished === undefined) book.finished = book.current === book.total;
   let legacyScroll = book.pageFraction === undefined ? (book.scroll || 0) : 0;
-  narration=mountNarration({player,bookId:book.id,onPlay:()=>{stopPlaying(false);coach.stopSpeech?.();}});
-  const coach=mountStoryCoach({player,enabled:book.bundled,checkpoints:content.checkpoints||[],pause:stopPlaying,onResume:()=>turn(1)});
+  narration=mountNarration({player,bookId:book.id,onPlay:()=>{stopPlaying(false);coach.stopSpeech?.();},onEnded:()=>coach.offerQuestion?.()});
+  let plannedQuestion=null;
+  const markerArea=main.querySelector('#question-markers'), markerLabel=main.querySelector('#question-stop-label');
+  function paintQuestionMarker(){
+    markerArea.replaceChildren();markerLabel.hidden=true;
+    const checkpoint=content.checkpoints?.find(c=>c.id===plannedQuestion);
+    const target=checkpoint?spreads.findIndex(s=>s.pageId===checkpoint.page_id):-1;
+    if(target<0)return;
+    const marker=document.createElement('span');marker.className='question-marker';marker.textContent='?';
+    const label=`Planned question · page ${target+1}`;
+    marker.title=label;marker.setAttribute('role','img');marker.setAttribute('aria-label',label);
+    marker.style.left=`${count>1?target/(count-1)*100:0}%`;
+    markerArea.append(marker);markerLabel.textContent=label;markerLabel.hidden=false;
+  }
+  const coach=mountStoryCoach({player,enabled:book.bundled,checkpoints:content.checkpoints||[],pause:stopPlaying,onResume:()=>turn(1),onPlannedQuestion:id=>{plannedQuestion=id;paintQuestionMarker();}});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function persist() {
     book.position=chapter;book.page=page;book.pageFraction=count>1?page/(count-1):0;
@@ -53,6 +66,7 @@ export function mountFlipbook({main, book, content, save, announce}) {
       }
       coach.context(spread?.pageId||null,upcoming);narration.context(text.textContent);
     }
+    paintQuestionMarker();
     previous.disabled=coach.isPaused() || (chapter===0 && page===0);
     next.disabled=coach.isPaused();
     previous.setAttribute('aria-disabled',String(turning || previous.disabled));

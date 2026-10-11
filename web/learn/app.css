@@ -133,3 +133,8 @@ body:has(.book-player) .voice-bar{display:none}
 
 .local-narration:not([hidden]){display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:.5rem 0}
 .local-narration audio{max-width:100%}
+
+.reader-timeline{position:relative;margin:14px 8px 0}
+#question-markers{position:absolute;inset:0;pointer-events:none}
+.question-marker{position:absolute;top:-8px;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#f4cf7e;color:#14251f;border:2px solid #14251f;font:bold 12px/16px sans-serif;text-align:center}
+.question-stop-label{margin:4px 0 8px;color:#f4cf7e;font-size:12px}
