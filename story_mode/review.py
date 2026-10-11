@@ -12,7 +12,7 @@ def validate_history(rows, targets):
         UUID(row['id'])
         date=datetime.fromisoformat(row['observed_at'].replace('Z','+00:00'))
         if date.tzinfo is None or date>datetime.now(timezone.utc)+timedelta(minutes=5):raise ValueError('Invalid observation time.')
-        if (row['id'] in seen or row['target'] not in targets or row['activity'] not in ('introduce','identify','match')
+        if (row['id'] in seen or row['target'] not in targets or row['activity'] not in ('introduce','identify','match','emphasize')
             or row['outcome'] not in ('independent','with_help','try_later') or row['source']!='teacher'
             or type(row['hint_used']) is not bool or not isinstance(row['passage_id'],str)
             or len(row['passage_id'])>100 or (row['outcome']=='independent' and row['hint_used'])):raise ValueError('Invalid practice evidence.')
@@ -33,11 +33,11 @@ def summarize(rows, now=None):
             if row['outcome']!='independent':break
             streak+=1
         # Introductions are exposure, never evidence of independent recognition.
-        days=1 if last['outcome']=='with_help' or activity=='introduce' else (1,3,7,14)[min(streak-1,3)]
+        days=1 if last['outcome']=='with_help' or activity in ('introduce','emphasize') else (1,3,7,14)[min(streak-1,3)]
         due=datetime.fromisoformat(last['observed_at'].replace('Z','+00:00'))+timedelta(days=days)
         helped=sum(r['outcome']=='with_help' for r in recent)
         reason=(f'Needed help in {helped} of {len(recent)} recent {activity} attempts.' if helped else
-                'Introduction recorded; recognition not established.' if activity=='introduce' else
+                'Word/letter exposure recorded; recognition not established.' if activity in ('introduce','emphasize') else
                 f'{len(recent)} recent independent {activity} observations.')
         result.append(dict(target=target,activity=activity,reason=reason,review_due_at=due.isoformat(),
                            due=due<=now,needs_support=last['outcome']=='with_help',observations=len(recent)))

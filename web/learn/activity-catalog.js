@@ -161,5 +161,29 @@ export const ACTIVITY_CATALOG = {
     "passage": "lettuce",
     "target": "radish",
     "task": "match"
+  },
+  "peter-rabbit/rabbit/emphasize-rabbit@1": {
+    "story": "peter-rabbit",
+    "passage": "rabbit",
+    "target": "rabbit",
+    "task": "emphasize"
+  },
+  "peter-rabbit/gate/emphasize-gate@1": {
+    "story": "peter-rabbit",
+    "passage": "gate",
+    "target": "gate",
+    "task": "emphasize"
+  },
+  "peter-rabbit/lettuce/emphasize-lettuce@1": {
+    "story": "peter-rabbit",
+    "passage": "lettuce",
+    "target": "lettuce",
+    "task": "emphasize"
+  },
+  "peter-rabbit/lettuce/emphasize-radish@1": {
+    "story": "peter-rabbit",
+    "passage": "lettuce",
+    "target": "radish",
+    "task": "emphasize"
   }
 };

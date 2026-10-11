@@ -23,7 +23,9 @@ def decision_context(state):
 def allowed_tools(context):
     if context['activities_started'] >= context['policy']['max_activities']:
         return {'recommend_continue'}
-    return {'propose_activity', 'recommend_continue'}
+    tools={'propose_activity', 'recommend_continue'}
+    if context['policy'].get('word_emphasis_beta') and any(len(t)>1 for t in context['opportunity']['targets']):tools.add('propose_word_emphasis')
+    return tools
 
 
 def rule_plan(context):
@@ -42,7 +44,7 @@ def validate_plan(plan, context):
         raise ValueError('Unavailable teaching action')
     args = plan['arguments']
     fields = {'session_id', 'revision', 'reason'}
-    if plan['tool'] == 'propose_activity':
+    if plan['tool'] in ('propose_activity','propose_word_emphasis'):
         fields |= {'activity', 'target', 'prompt', 'hint'}
     if not isinstance(args, dict) or set(args) != fields:
         raise ValueError('Invalid teaching action arguments')
@@ -53,8 +55,10 @@ def validate_plan(plan, context):
         if field in args and (not isinstance(args[field], str)
                               or not 1 <= len(args[field].strip()) <= limit):
             raise ValueError('Invalid teaching text')
-    if plan['tool'] == 'propose_activity':
-        if args['activity'] not in ('introduce', 'identify', 'match'):
+    if plan['tool'] in ('propose_activity','propose_word_emphasis'):
+        beta=plan['tool']=='propose_word_emphasis'
+        if beta and len(args.get('target',''))<2:raise ValueError('Word emphasis requires an approved keyword')
+        if args['activity'] not in (('emphasize',) if beta else ('introduce','identify','match')):
             raise ValueError('Unknown teaching activity')
         if args['target'] not in context['opportunity']['targets']:
             raise ValueError('Target outside this opportunity')

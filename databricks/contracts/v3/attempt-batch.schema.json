@@ -64,7 +64,11 @@
               "peter-rabbit/lettuce/match-r@1",
               "peter-rabbit/lettuce/introduce-radish@1",
               "peter-rabbit/lettuce/identify-radish@1",
-              "peter-rabbit/lettuce/match-radish@1"
+              "peter-rabbit/lettuce/match-radish@1",
+              "peter-rabbit/rabbit/emphasize-rabbit@1",
+              "peter-rabbit/gate/emphasize-gate@1",
+              "peter-rabbit/lettuce/emphasize-lettuce@1",
+              "peter-rabbit/lettuce/emphasize-radish@1"
             ]
           },
           "result": {

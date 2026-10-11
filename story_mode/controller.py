@@ -31,7 +31,7 @@ class Controller:
             self.sessions[sid] = {'session_id':sid, 'revision':0, 'passage_id':None,
                 'phase':'reading', 'proposal':None, 'response':None, 'observations':[], 'trace':[],
                 'device':{'connected':False, 'ready':False, 'mode':'teacher-supplied tactile Braille'},
-                'policy':{'teacher_approval':True, 'max_activities':6, 'braille_code':'UEB', 'translation':'uncontracted lowercase letters'},
+                'policy':{'word_emphasis_beta':False, 'teacher_approval':True, 'max_activities':6, 'braille_code':'UEB', 'translation':'uncontracted lowercase letters'},
                 'activities_started':0, 'interaction_revision':0, 'learner_history':history}
             return self.get(sid)
 
@@ -62,13 +62,20 @@ class Controller:
                 passage=args.get('passage_id')
                 if passage is not None and passage not in CATALOG: raise StoryError('Unknown story passage.')
                 s.update(passage_id=passage, phase='reading', proposal=None, response=None)
-            elif name == 'propose_activity':
+            elif name == 'set_word_emphasis_beta':
+                teacher();phase('reading','proposed','continue_proposed')
+                if type(args.get('enabled')) is not bool:raise StoryError('Beta setting must be boolean.')
+                s['policy']['word_emphasis_beta']=args['enabled']
+                s.update(phase='reading',proposal=None,response=None)
+            elif name in ('propose_activity','propose_word_emphasis'):
                 phase('reading','proposed','continue_proposed')
                 opportunity=CATALOG.get(s['passage_id'])
                 target=args.get('target')
                 if not opportunity or target not in opportunity['targets']: raise StoryError('Target is outside the approved passage.')
                 if s['activities_started'] >= s['policy']['max_activities']: raise StoryError('Session activity limit reached.')
-                if args.get('activity') not in ('introduce','identify','match'): raise StoryError('Unknown activity.')
+                beta=name=='propose_word_emphasis'
+                if beta and (not s['policy']['word_emphasis_beta'] or not isinstance(target,str) or len(target)<2):raise StoryError('Word emphasis beta is unavailable for this target.')
+                if args.get('activity') not in (('emphasize',) if beta else ('introduce','identify','match')): raise StoryError('Unknown activity.')
                 s['proposal']={'activity':args['activity'], 'target':target, 'kind':'letter' if len(target)==1 else 'word',
                     'reason':text('reason',400), 'prompt':text('prompt',240), 'hint':text('hint',240)}
                 s['phase']='proposed'
@@ -77,10 +84,13 @@ class Controller:
                 s['proposal']={'reason':text('reason',400)};s['phase']='continue_proposed'
             elif name == 'approve_activity':
                 teacher();phase('proposed');s['phase']='awaiting_tactile';s['activities_started']+=1
-            elif name == 'prepare_braille':
+            elif name in ('prepare_braille','prepare_word_sequence'):
                 phase('awaiting_tactile')
+                if name=='prepare_word_sequence' and (not s['policy']['word_emphasis_beta'] or s['proposal']['activity']!='emphasize'):raise StoryError('No approved beta word activity.')
                 s['braille']={'code':'UEB','mode':'uncontracted lowercase', 'cells':[{'letter':c,'dots':DOTS[c]} for c in s['proposal']['target']],
                               'physical_ready':False, 'source':'deterministic preview; teacher supplies tactile material'}
+                if name=='prepare_word_sequence':
+                    s['braille']['sequence']={'word':s['proposal']['target'],'hold_ms':1500,'gap_ms':300,'command':'SPELL '+s['proposal']['target'],'execution':'preview_only'}
             elif name == 'confirm_tactile':
                 teacher();phase('awaiting_tactile')
                 if 'braille' not in s: raise StoryError('Prepare the Braille preview first.')
@@ -105,7 +115,7 @@ class Controller:
             elif name == 'resume_story':
                 teacher();s.update(phase='reading',proposal=None,response=None)
             else: raise StoryError('Unknown Story Mode tool.')
-            if name in ('set_context','resume_story','propose_activity'):
+            if name in ('set_context','resume_story','propose_activity','propose_word_emphasis','set_word_emphasis_beta'):
                 for field in ('braille','speech','hint_used','tactile_source'):s.pop(field,None)
             if name != 'set_context': s['interaction_revision'] = s.get('interaction_revision', 0) + 1
             s['revision']+=1

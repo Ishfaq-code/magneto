@@ -29,6 +29,18 @@ class ProtocolTests(unittest.TestCase):
     def tearDownClass(cls):cls.server.shutdown();cls.server.server_close();cls.thread.join()
     def setUp(self):
         self.s=controller.create();self.s=controller.call(self.s['session_id'],0,'set_context',{'passage_id':'rabbit'},actor='teacher')
+    def test_beta_word_proposal_executes_through_mcp(self):
+        self.s=controller.call(self.s['session_id'],self.s['revision'],'set_word_emphasis_beta',{'enabled':True},actor='teacher')
+        def fixture(messages):
+            data=json.loads(messages[-1]['content'])
+            self.assertIn('propose_word_emphasis',[t['name'] for t in data['available_mcp_tools']])
+            return json.dumps({'tool':'propose_word_emphasis','arguments':{
+                'session_id':self.s['session_id'],'revision':self.s['revision'],'activity':'emphasize',
+                'target':'rabbit','prompt':'Explore rabbit with Peter.','hint':'Feel one letter at a time.','reason':'Keyword exposure.'}})
+        result=asyncio.run(run(self.s,fixture))
+        self.assertEqual(result['state']['proposal']['activity'],'emphasize')
+        self.assertFalse(result['state']['device']['ready'])
+
     def test_lookahead_projects_target_without_changing_live_context(self):
         def fixture(messages):
             context=json.loads(messages[-1]['content'])['context']

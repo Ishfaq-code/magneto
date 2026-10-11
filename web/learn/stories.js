@@ -1,8 +1,8 @@
-import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js?v=practice-memory-1';
+import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js?v=word-beta-1';
 import { DecisionSession } from './decision-session.js';
 import { peterActivities, bindPeterActivities } from './peter-activities.js';
-import { mountFlipbook } from './flipbook.js?v=practice-memory-1';
-import { importEbook, ebookStore } from './ebook.js?v=practice-memory-1';
+import { mountFlipbook } from './flipbook.js?v=word-beta-1';
+import { importEbook, ebookStore } from './ebook.js?v=word-beta-1';
 // Reading records are separate from learning progress and saved CAD designs.
 const key = 'magneto-stories-v1';
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

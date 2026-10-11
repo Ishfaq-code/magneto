@@ -19,8 +19,8 @@ controller=Controller()
 preparations=Preparation(controller)
 lookahead=Lookahead(controller)
 MCP_KEY=secrets.token_urlsafe(32)
-MODEL_TOOLS={'propose_activity','recommend_continue','prepare_braille','speak_prompt','give_hint','submit_response'}
-TEACHER_ACTIONS={'set_context','approve_activity','prepare_braille','confirm_tactile','speak_prompt','give_hint','submit_response','record_observation','resume_story'}
+MODEL_TOOLS={'propose_word_emphasis','prepare_word_sequence','propose_activity','recommend_continue','prepare_braille','speak_prompt','give_hint','submit_response'}
+TEACHER_ACTIONS={'set_word_emphasis_beta','prepare_word_sequence','set_context','approve_activity','prepare_braille','confirm_tactile','speak_prompt','give_hint','submit_response','record_observation','resume_story'}
 
 
 def handle(handler):

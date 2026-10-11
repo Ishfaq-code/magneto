@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCK = Lock()
 
 def prepare_audio(plan):
-    if plan['tool'] != 'propose_activity': return {}
+    if plan['tool'] not in ('propose_activity','propose_word_emphasis'): return {}
     with LOCK:
         settings = {}
         load_local_env(ROOT / '.env', settings)

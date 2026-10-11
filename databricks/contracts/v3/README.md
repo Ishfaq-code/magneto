@@ -63,3 +63,7 @@ not be counted as recognition mastery. Original observation IDs and UTC timestam
 Deploy the regenerated consumer catalog before enabling new references in a cloud environment.
 The wire schema is unchanged. Personal Intelligence currently retains bounded browser-local
 story history for review scheduling; reading lakehouse history into the planner is not implemented.
+
+Word-emphasis beta adds immutable `emphasize-<word>@1` references with task `emphasize`.
+These represent keyword exposure and must not be aggregated as recognition or matching success.
+The existing attempt envelope is unchanged; deploy the catalog/enum extension before new producers.

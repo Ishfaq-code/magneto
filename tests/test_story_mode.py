@@ -109,6 +109,36 @@ class PreparationTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.finish(ticket)
         self.assertEqual(self.c.get(self.s['session_id']),self.s)
 
+class WordBetaTests(unittest.TestCase):
+    def setUp(self):
+        self.c=Controller();self.s=self.c.create()
+        self.s=self.c.call(self.s['session_id'],0,'set_context',{'passage_id':'rabbit'},actor='teacher')
+    def call(self,name,args=None,actor='orchestrator'):
+        self.s=self.c.call(self.s['session_id'],self.s['revision'],name,args,actor=actor);return self.s
+    def proposal(self,target='rabbit'):
+        return self.call('propose_word_emphasis',dict(activity='emphasize',target=target,prompt='Explore rabbit with Peter.',hint='Feel each letter.',reason='Story keyword exposure.'))
+    def test_disabled_by_default_and_model_cannot_enable(self):
+        self.assertNotIn('propose_word_emphasis',allowed_tools(decision_context(self.s)))
+        with self.assertRaises(StoryError):self.proposal()
+        with self.assertRaises(StoryError):self.call('set_word_emphasis_beta',{'enabled':True})
+    def test_approved_sequence_is_ordered_and_not_physical(self):
+        self.call('set_word_emphasis_beta',{'enabled':True},'teacher')
+        self.assertIn('propose_word_emphasis',allowed_tools(decision_context(self.s)))
+        self.proposal()
+        with self.assertRaises(StoryError):self.call('prepare_word_sequence')
+        self.call('approve_activity',actor='teacher');self.call('prepare_word_sequence')
+        self.assertEqual(''.join(c['letter'] for c in self.s['braille']['cells']),'rabbit')
+        self.assertEqual(self.s['braille']['sequence']['command'],'SPELL rabbit')
+        self.assertFalse(self.s['braille']['physical_ready'])
+    def test_single_letter_or_unapproved_keyword_rejected(self):
+        self.call('set_word_emphasis_beta',{'enabled':True},'teacher')
+        for target in ['r','gate','rabbit; CLEAR']:
+            with self.assertRaises(StoryError):self.proposal(target)
+    def test_disable_clears_proposal_and_prepared_context(self):
+        self.call('set_word_emphasis_beta',{'enabled':True},'teacher');self.proposal()
+        self.call('set_word_emphasis_beta',{'enabled':False},'teacher')
+        self.assertIsNone(self.s['proposal']);self.assertEqual(self.s['phase'],'reading')
+
 class ReviewTests(unittest.TestCase):
     def row(self,outcome='with_help',activity='identify',day=1):
         from uuid import uuid4
