@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:magneto:contracts:v1:decision",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "continue",
+        "teach"
+      ]
+    },
+    "passage_id": {
+      "type": "string",
+      "enum": [
+        "monday_apple",
+        "tuesday_pear",
+        "wednesday_plum"
+      ]
+    },
+    "target_letter": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "A",
+        "P",
+        null
+      ]
+    },
+    "prompt": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400,
+      "pattern": "\\S"
+    },
+    "based_on_event_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "action",
+    "passage_id",
+    "target_letter",
+    "prompt",
+    "reason",
+    "based_on_event_id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "continue"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "target_letter": {
+            "type": "null"
+          },
+          "prompt": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "target_letter": {
+            "enum": [
+              "A",
+              "P"
+            ]
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "\\S"
+          }
+        }
+      }
+    }
+  ]
+}

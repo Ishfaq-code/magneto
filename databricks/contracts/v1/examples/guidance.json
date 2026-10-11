@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "guidance_id": "demo-p-recognition-001",
+  "text": "Synthetic integration fixture: offer another brief tactile P recognition opportunity after an incorrect response. Not research evidence.",
+  "target_letters": [
+    "P"
+  ],
+  "difficulty_tags": [
+    "recognition",
+    "incorrect_response"
+  ],
+  "source_id": "synthetic-fixture-001",
+  "citation": {
+    "title": "Synthetic integration fixture \u2014 not research evidence",
+    "uri": "urn:magneto:synthetic-fixture:001",
+    "locator": "Fixture paragraph 1"
+  },
+  "approved": false
+}

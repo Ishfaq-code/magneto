@@ -8,10 +8,10 @@
 | Smoke checks are read-only metadata checks | Implemented | No ingestion, inference, trace writes or index queries |
 | Manual research job definition | Implemented, not cloud-executed | No schedule; deploy/run verification remains separate |
 | Source selection and update policy | Undefined | No automatic internet ingestion |
-| Data schemas and extraction targets | Undefined | No tables or extraction implementations |
+| Shared guidance record | Defined [v1](../../contracts/README.md) | Exchange schema only; extraction targets and physical tables remain open |
 | Analytical questions and methods | Undefined | No dataset analysis logic |
 | Research experiment and evaluation contract | Undefined | Optional reference only; no director experiment reuse |
-| AI Search publication/retrieval contract | Undefined | Optional reference only; no index provisioning |
-| Research-to-director context contract | Undefined | No live-agent integration |
+| AI Search publication/retrieval contract | Defined v1 in shared contracts | Approved guidance only; no index provisioned |
+| Research-to-director context contract | Retrieval boundary defined; snapshot extension deferred | No live-agent integration; coordinate a version change before adding fields |
 
 Update this register when a decision is supplied or behavior is verified. A configuration example, successful local test or SDK metadata response does not establish successful cloud processing.

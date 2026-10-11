@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:magneto:contracts:v1:guidance",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "guidance_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_letters": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "difficulty_tags": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "recognition",
+          "incorrect_response",
+          "help_requested"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "title",
+        "uri",
+        "locator"
+      ]
+    },
+    "approved": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "guidance_id",
+    "text",
+    "target_letters",
+    "difficulty_tags",
+    "source_id",
+    "citation",
+    "approved"
+  ]
+}

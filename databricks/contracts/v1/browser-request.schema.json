@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:magneto:contracts:v1:browser-request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "passage_id": {
+      "enum": [
+        "monday_apple",
+        "tuesday_pear",
+        "wednesday_plum"
+      ]
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "passage_id": {
+            "enum": [
+              "tuesday_pear",
+              "wednesday_plum"
+            ]
+          },
+          "target_letter": {
+            "const": "P"
+          },
+          "response": {
+            "enum": [
+              "correct",
+              "incorrect",
+              "help"
+            ]
+          }
+        },
+        "required": [
+          "event_id",
+          "passage_id",
+          "target_letter",
+          "response"
+        ]
+      },
+      "maxItems": 20
+    }
+  },
+  "required": [
+    "request_id",
+    "session_id",
+    "passage_id",
+    "events"
+  ]
+}

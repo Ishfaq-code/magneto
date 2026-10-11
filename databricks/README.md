@@ -8,6 +8,10 @@ Start here before changing cloud code. These workloads share a repository, not a
 | `magneto-director/` | Live teaching decisions and Agent Bricks runtime | Existing Agent Bricks deployment |
 | `research-pipeline/` | Research/data-analysis scaffold; future knowledge production | Separate bundle; manual smoke job only |
 
+## Base contracts
+
+Read [contracts/README.md](contracts/README.md) before changing component interfaces. Versioned JSON Schemas and examples are the shared baseline for research, AI Search, the director, and the local runtime. Validate with `npm run check:contracts` from the repository root.
+
 ## Service map
 
 ### Architecture flow
@@ -73,4 +77,4 @@ The research package uses the Databricks SDK directly for its small read-only ch
 - Platform `provision` / `wire-app`: create resources or modify grants.
 - Director deploy: changes the live application.
 
-See each package's README before running mutating commands. Research schemas, extraction objectives, analysis methods and retrieval contracts remain user-defined decisions.
+See each package's README before running mutating commands. Shared guidance/retrieval boundaries are defined in `contracts/`; internal extraction objectives, analysis methods and physical table/index layouts remain open.

@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:magneto:contracts:v1:session-snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "passage_id": {
+      "enum": [
+        "monday_apple",
+        "tuesday_pear",
+        "wednesday_plum"
+      ]
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "passage_id": {
+            "enum": [
+              "tuesday_pear",
+              "wednesday_plum"
+            ]
+          },
+          "target_letter": {
+            "const": "P"
+          },
+          "response": {
+            "enum": [
+              "correct",
+              "incorrect",
+              "help"
+            ]
+          }
+        },
+        "required": [
+          "event_id",
+          "passage_id",
+          "target_letter",
+          "response"
+        ]
+      },
+      "maxItems": 20
+    },
+    "current_passage": {
+      "enum": [
+        {
+          "summary": "The teacher reads the apple passage from their own book.",
+          "word": "apple",
+          "letter": "A"
+        },
+        {
+          "summary": "The teacher reads the pear passage from their own book.",
+          "word": "pear",
+          "letter": "P"
+        },
+        {
+          "summary": "The teacher reads the plum passage from their own book.",
+          "word": "plum",
+          "letter": "P"
+        }
+      ]
+    },
+    "upcoming_opportunities": {
+      "type": "array"
+    },
+    "learner_history": {
+      "const": {
+        "synthetic": true,
+        "A": "familiar",
+        "P": "needs_practice"
+      }
+    },
+    "available_props": {
+      "const": [
+        "apple",
+        "pear",
+        "plum"
+      ]
+    },
+    "props_source": {
+      "const": "teacher-supplied test data; not camera observations"
+    }
+  },
+  "required": [
+    "request_id",
+    "session_id",
+    "passage_id",
+    "events",
+    "current_passage",
+    "upcoming_opportunities",
+    "learner_history",
+    "available_props",
+    "props_source"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "passage_id": {
+            "const": "monday_apple"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "current_passage": {
+            "const": {
+              "summary": "The teacher reads the apple passage from their own book.",
+              "word": "apple",
+              "letter": "A"
+            }
+          },
+          "upcoming_opportunities": {
+            "const": [
+              {
+                "passage_id": "tuesday_pear",
+                "summary": "The teacher reads the pear passage from their own book.",
+                "word": "pear",
+                "letter": "P"
+              },
+              {
+                "passage_id": "wednesday_plum",
+                "summary": "The teacher reads the plum passage from their own book.",
+                "word": "plum",
+                "letter": "P"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "passage_id": {
+            "const": "tuesday_pear"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "current_passage": {
+            "const": {
+              "summary": "The teacher reads the pear passage from their own book.",
+              "word": "pear",
+              "letter": "P"
+            }
+          },
+          "upcoming_opportunities": {
+            "const": [
+              {
+                "passage_id": "wednesday_plum",
+                "summary": "The teacher reads the plum passage from their own book.",
+                "word": "plum",
+                "letter": "P"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "passage_id": {
+            "const": "wednesday_plum"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "current_passage": {
+            "const": {
+              "summary": "The teacher reads the plum passage from their own book.",
+              "word": "plum",
+              "letter": "P"
+            }
+          },
+          "upcoming_opportunities": {
+            "const": []
+          }
+        }
+      }
+    }
+  ]
+}

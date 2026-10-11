@@ -2,7 +2,7 @@
 
 This package prepares a home for research processing and dataset analysis. It currently implements configuration, read-only metadata checks and a manual job definition. It does not ingest sources, call models, create tables/indexes, or implement teaching logic.
 
-Read `docs/architecture.md` for stage responsibilities and `docs/decisions.md` for unresolved contracts. Shared assets remain owned by `../platform`; live Agent Bricks code remains in `../magneto-director`.
+Read [the base contracts](../contracts/README.md) for the agreed guidance and retrieval interfaces, `docs/architecture.md` for stage responsibilities, and `docs/decisions.md` for remaining decisions. Shared assets remain owned by `../platform`; live Agent Bricks code remains in `../magneto-director`.
 
 ## Local checks
 
