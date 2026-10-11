@@ -6,6 +6,22 @@ requesting 24 kHz PCM and wrapping it in standard mono, 16-bit WAV files. No SDK
 Databricks table, or browser API key is needed. The build requires an ElevenLabs key and an accessible
 voice; playback needs only the generated local files.
 
+## Full Peter Rabbit book
+
+The included edition is prepared as 27 story clips (reader chapter 2, pages 3–29), excluding
+publisher and license front matter. Regenerate its editable script with:
+
+```sh
+npm run prepare:narration:peter
+npm run build:narration -- story_mode/narration/peter-rabbit.json
+```
+
+The edition-specific extractor follows illustration boundaries; it is not a general EPUB importer.
+On 2026-10-11, live ElevenLabs generation produced all 27 clips (305.81 seconds total, 14.68 MB).
+Browser verification matched every clip to the actual reader page and confirmed a real clip played.
+A subsequent dry run reused all 27. Audio stays local and git-ignored; the full narration script is
+versioned. Credentials and generated voice metadata are not committed.
+
 ## Build and play
 
 1. Copy `peter-rabbit.example.json` and edit the script. The example contains **two excerpts**, not
@@ -79,5 +95,6 @@ and credentials. The wrapper sends narration text and voice settings, never stud
 
 `npm run check:narration` covers request shape, cache reuse/invalidation, malformed data, missing
 credentials, interrupted builds, corrupt files, manifest matching and safe local paths. Browser
-verification used synthetic silence to check decoding, duration and pause-on-navigation. A real
-ElevenLabs voice-generation run still requires configured credentials and a listening check.
+verification used synthetic silence to check decoding, duration and pause-on-navigation. The full Peter Rabbit script has also been generated through the live ElevenLabs endpoint and
+checked for page alignment and browser playback. Pronunciation and performance still merit a human
+listening review.

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare:narration:peter": "python3 scripts/prepare_peter_narration.py",
     "build:narration": "python3 scripts/build_narration.py",
     "check:narration": "python3 -m unittest discover -s tests -p test_narration.py && node --test tests/narration.test.mjs",
     "start": "python3 scripts/serve.py",

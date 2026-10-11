@@ -17,6 +17,18 @@ class NarrationTests(unittest.TestCase):
     def convert(self,voice,payload,key):
         self.calls.append((voice,payload));return b'\0\0'*24000
     def build(self,**kwargs):return narration.build(self.script,self.tmp.name,'test-voice',convert=self.convert,**kwargs)
+    def test_full_peter_script_matches_extractor_and_has_unique_pages(self):
+        spec=importlib.util.spec_from_file_location('prepare_peter',ROOT/'scripts/prepare_peter_narration.py')
+        prepare=importlib.util.module_from_spec(spec);spec.loader.exec_module(prepare)
+        script=prepare.prepare()
+        self.assertEqual(script,json.loads((ROOT/'story_mode/narration/peter-rabbit.json').read_text()))
+        narration.validate(script)
+        self.assertEqual([p['id'] for p in script['passages']],[f'page-{n:02d}' for n in range(3,30)])
+        for passage in script['passages']:
+            self.assertEqual(sum(passage['match_text'].lower() in p['text'].lower() for p in script['passages']),1)
+        self.assertIn('Flopsy,',script['passages'][0]['text'])
+        self.assertTrue(script['passages'][-1]['text'].endswith('blackberries for supper.'))
+
     def test_local_env_quotes_comments_and_shell_precedence(self):
         path=Path(self.tmp.name)/'.env'
         path.write_text('# local settings\nexport ELEVENLABS_API_KEY="local-key" # comment\nELEVENLABS_VOICE_ID=voice123\nOTHER_KEY=ignored\n')
