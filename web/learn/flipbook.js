@@ -1,19 +1,19 @@
 import { createPageTurnSound } from './page-turn-sound.js';
 import { mountNarration } from './narration.js?v=autoplay-1';
-import { mountStoryCoach } from './story-coach.js?v=lookahead-2';
+import { mountStoryCoach } from './story-coach.js?v=checkpoints-1';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
   const root = new DOMParser().parseFromString(html, 'text/html').body;
-  const spreads = []; let passage = '', image = ''; 
+  const spreads = []; let passage = '', image = '', pageId = null;
   function visit(node) {
     if (node.nodeType === 3) { if (node.textContent.trim()) { const p=document.createElement('p');p.textContent=node.textContent;passage+=p.outerHTML; } return; }
     if (node.nodeType !== 1) return;
-    if (node.tagName === 'IMG') { if(image || passage.trim())spreads.push({image,html:passage});image=node.outerHTML;passage='';return; }
+    if (node.tagName === 'IMG') { if(image || passage.trim())spreads.push({image,html:passage,pageId});image=node.outerHTML;pageId=node.dataset.storyPageId||null;passage='';return; }
     if (node.querySelector('img') || ['DIV','SECTION','ARTICLE','FIGURE'].includes(node.tagName)) { [...node.childNodes].forEach(visit);return; }
     passage += node.outerHTML;
   }
   [...root.childNodes].forEach(visit);
-  if (image || passage.trim()) spreads.push({image,html:passage});
+  if (image || passage.trim()) spreads.push({image,html:passage,pageId});
   return spreads.length ? spreads : [{image:'',html:html}];
 }
 // Browser-native pagination; the imported chapter remains accessible text.
@@ -34,7 +34,7 @@ export function mountFlipbook({main, book, content, save, announce}) {
   if (book.finished === undefined) book.finished = book.current === book.total;
   let legacyScroll = book.pageFraction === undefined ? (book.scroll || 0) : 0;
   narration=mountNarration({player,bookId:book.id,onPlay:()=>{stopPlaying(false);coach.stopSpeech?.();}});
-  const coach=mountStoryCoach({player,enabled:book.bundled,pause:stopPlaying,onResume:()=>turn(1)});
+  const coach=mountStoryCoach({player,enabled:book.bundled,checkpoints:content.checkpoints||[],pause:stopPlaying,onResume:()=>turn(1)});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function persist() {
     book.position=chapter;book.page=page;book.pageFraction=count>1?page/(count-1):0;
@@ -49,9 +49,9 @@ export function mountFlipbook({main, book, content, save, announce}) {
       windowEl.scrollTop=0;paintedPage=page;const upcoming=[];
       for(let c=chapter;c<content.chapters.length && upcoming.length<3;c++){
         const pages=c===chapter?spreads:illustrationSpreads(content.chapters[c].html);
-        for(let p=c===chapter?page:0;p<pages.length && upcoming.length<3;p++)upcoming.push(new DOMParser().parseFromString(pages[p].html,'text/html').body.textContent);
+        for(let p=c===chapter?page:0;p<pages.length && upcoming.length<3;p++)upcoming.push(pages[p].pageId);
       }
-      coach.context(text.textContent,upcoming);narration.context(text.textContent);
+      coach.context(spread?.pageId||null,upcoming);narration.context(text.textContent);
     }
     previous.disabled=coach.isPaused() || (chapter===0 && page===0);
     next.disabled=coach.isPaused();

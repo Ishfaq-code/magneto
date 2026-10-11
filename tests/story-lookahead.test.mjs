@@ -26,5 +26,6 @@ test('feedback never grades a transcript or treats try-later as incorrect',()=>{
  assert.equal(feedbackFor('record_observation','independent'),'success-independent');
  assert.equal(feedbackFor('record_observation','with_help'),'success-assisted');
  assert.equal(feedbackFor('give_hint'),null);
- assert.equal(opportunityFor('four little Rabbits'),'rabbit');
+ assert.equal(opportunityFor('page-03',[{id:'rabbit',page_id:'page-03'}]),'rabbit');
+ assert.equal(opportunityFor('four little Rabbits',[{id:'rabbit',page_id:'page-03'}]),null);
 });

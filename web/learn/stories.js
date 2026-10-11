@@ -1,8 +1,8 @@
-import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js';
+import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js?v=checkpoints-1';
 import { DecisionSession } from './decision-session.js';
 import { peterActivities, bindPeterActivities } from './peter-activities.js';
-import { mountFlipbook } from './flipbook.js?v=lookahead-2';
-import { importEbook, ebookStore } from './ebook.js';
+import { mountFlipbook } from './flipbook.js?v=checkpoints-1';
+import { importEbook, ebookStore } from './ebook.js?v=checkpoints-1';
 // Reading records are separate from learning progress and saved CAD designs.
 const key = 'magneto-stories-v1';
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -40,7 +40,9 @@ async function loadBook(book) {
   if (!book.bundled) return ebookStore('get',book.id);
   const response = await fetch('./books/the-tale-of-peter-rabbit.epub');
   if (!response.ok) throw Error('Peter Rabbit could not be opened. Please reload and try again.');
-  const content = preparePeterReading(await importEbook(new File([await response.blob()], 'the-tale-of-peter-rabbit.epub')));
+  const mapResponse=await fetch('./books/peter-rabbit-checkpoints.json');
+  if(!mapResponse.ok)throw Error('Checkpoint map is unavailable.');
+  const content = preparePeterReading(await importEbook(new File([await response.blob()], 'the-tale-of-peter-rabbit.epub')),await mapResponse.json());
   if(book.readingVersion !== PETER_READING_VERSION){
     book.previousReadingPosition={position:book.position,page:book.page,pageFraction:book.pageFraction};
     Object.assign(book,{position:content.readingStart,page:0,pageFraction:0,current:content.readingStart,finished:false,readingVersion:PETER_READING_VERSION});

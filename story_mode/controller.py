@@ -3,11 +3,12 @@ from copy import deepcopy
 from threading import RLock
 from uuid import uuid4
 
-CATALOG = {
-    'rabbit': {'summary': 'Meet Peter and the other little rabbits.', 'prop': 'rabbit model', 'targets': ['r', 'rabbit']},
-    'lettuce': {'summary': 'Peter eats lettuces, French beans and radishes.', 'prop': 'lettuce leaf or radish model', 'targets': ['l', 'lettuce', 'r', 'radish']},
-    'gate': {'summary': 'Peter squeezes under the garden gate.', 'prop': 'tactile gate model', 'targets': ['g', 'gate']},
-}
+import json
+from pathlib import Path
+
+CHECKPOINT_MAP = json.loads((Path(__file__).resolve().parents[1]/'web/learn/books/peter-rabbit-checkpoints.json').read_text())
+CATALOG = {c['id']: {k:v for k,v in c.items() if k != 'id'} for c in CHECKPOINT_MAP['checkpoints']}
+
 DOTS = dict(zip('abcdefghijklmnopqrstuvwxyz', [[1],[1,2],[1,4],[1,4,5],[1,5],[1,2,4],[1,2,4,5],[1,2,5],[2,4],[2,4,5],[1,3],[1,2,3],[1,3,4],[1,3,4,5],[1,3,5],[1,2,3,4],[1,2,3,4,5],[1,2,3,5],[2,3,4],[2,3,4,5],[1,3,6],[1,2,3,6],[2,4,5,6],[1,3,4,6],[1,3,4,5,6],[1,3,5,6]]))
 
 class StoryError(ValueError):

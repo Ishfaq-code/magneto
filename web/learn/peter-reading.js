@@ -1,6 +1,6 @@
 // Reading presentation for the bundled edition. The EPUB and its notices remain intact.
 export const PETER_READING_VERSION = 'title-first-2';
-export function preparePeterReading(content) {
+export function preparePeterReading(content, checkpointMap) {
   const index = content.chapters.findIndex(chapter => {
     const root = new DOMParser().parseFromString(chapter.html, 'text/html').body;
     return [...root.querySelectorAll('p')].some(p => p.textContent.trim().startsWith('Once upon a time there were four little Rabbits'));
@@ -24,7 +24,16 @@ export function preparePeterReading(content) {
   const invitation = document.createElement('p');
   invitation.textContent = 'A little rabbit. A very big adventure.';
   root.insertBefore(invitation, storyImage);
+  if(checkpointMap?.schema_version!=='1.0' || checkpointMap.book_id!=='builtin-peter-rabbit')throw Error('Invalid Peter Rabbit checkpoint map.');
+  const sourceImages=[...root.querySelectorAll('img')];
+  const seen=new Set();
+  for(const page of checkpointMap.pages){
+    const matches=sourceImages.filter(img=>img.dataset.sourceImageId===page.source_image_id);
+    if(matches.length!==1 || seen.has(page.id))throw Error('Peter Rabbit edition changed. Review stable page anchors.');
+    matches[0].dataset.storyPageId=page.id;seen.add(page.id);
+  }
+  if(sourceImages.length!==seen.size || checkpointMap.checkpoints.some(c=>!seen.has(c.page_id)))throw Error('Checkpoint map does not match this edition.');
   const chapters = content.chapters.map((chapter, i) => i === index ? {...chapter, html:root.innerHTML} : chapter);
   chapters.push({title:'Publication details', html:notices.innerHTML});
-  return {...content, chapters, readingStart:index};
+  return {...content, chapters, readingStart:index, checkpoints:checkpointMap.checkpoints};
 }

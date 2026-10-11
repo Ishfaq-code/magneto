@@ -69,3 +69,20 @@ intervening educator action, single-use handles, one in-flight job and late resu
 check future context projection without mutating the real page. Feedback mapping tests ensure
 transcripts cannot trigger success and try-later cannot trigger incorrect feedback. Live browser
 verification exercised cached prompt, hint and assisted-success playback on the gate opportunity.
+
+## Authored checkpoints and stable page anchors
+
+`web/learn/books/peter-rabbit-checkpoints.json` is the shared authored map read by the browser
+and Python controller. Each checkpoint has a stable ID, page ID, allowed targets, required
+materials, story summary and `after_narration` pause boundary. All checkpoints are optional:
+the agent continues to choose propose versus continue, with no mandatory exercise added.
+
+Page IDs bind to original EPUB illustration IDs, not displayed page numbers or wording.
+The importer preserves source image IDs as escaped metadata; the bundled-book adapter attaches
+stable page IDs after validating the edition. Missing/duplicate anchors fail explicitly so an
+edited edition cannot silently move an exercise to the wrong page. Generic imported books do
+not gain this checkpoint map. Narration matching and saved reading positions are unchanged.
+
+Migration: existing checkpoint IDs `rabbit`, `gate`, `lettuce` and narration page IDs are retained.
+No deployed Databricks interface changes. Story copy edits no longer alter checkpoint selection.
+The pause boundary is authored guidance; educator initiation still controls starting an exercise.

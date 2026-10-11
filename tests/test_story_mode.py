@@ -109,6 +109,28 @@ class PreparationTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.finish(ticket)
         self.assertEqual(self.c.get(self.s['session_id']),self.s)
 
+class CheckpointMapTests(unittest.TestCase):
+    def test_authored_anchors_match_bundled_edition(self):
+        from story_mode.controller import CHECKPOINT_MAP, CATALOG
+        from pathlib import Path
+        from zipfile import ZipFile
+        import xml.etree.ElementTree as ET
+        root=Path(__file__).resolve().parents[1]
+        with ZipFile(root/'web/learn/books/the-tale-of-peter-rabbit.epub') as archive:
+            tree=ET.fromstring(archive.read(next(n for n in archive.namelist() if n.endswith('_14838-h-0.htm.xhtml'))))
+        image_ids=[n.attrib['id'] for n in tree.iter() if n.tag.endswith('}img')]
+        pages=CHECKPOINT_MAP['pages']
+        self.assertEqual([p['source_image_id'] for p in pages],image_ids)
+        self.assertEqual(len({p['id'] for p in pages}),len(pages))
+        anchors={p['id']:p['source_image_id'] for p in pages}
+        self.assertEqual(anchors[CATALOG['rabbit']['page_id']],'img_images_peter02.gif')
+        self.assertEqual(anchors[CATALOG['gate']['page_id']],'img_images_peter19.jpg')
+        self.assertEqual(anchors[CATALOG['lettuce']['page_id']],'img_images_peter20.jpg')
+        for checkpoint in CATALOG.values():
+            self.assertTrue(checkpoint['optional'])
+            self.assertEqual(checkpoint['pause_at'],'after_narration')
+            self.assertTrue(checkpoint['required_materials'])
+
 class LookaheadTests(unittest.TestCase):
     def setUp(self):
         from story_mode.lookahead import Lookahead

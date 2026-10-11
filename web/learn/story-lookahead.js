@@ -1,5 +1,5 @@
-export function opportunityFor(text) {
-  return /lettuces.*French beans.*radishes/s.test(text) ? 'lettuce' : /four little Rabbits/i.test(text) ? 'rabbit' : /squeezed under the gate/i.test(text) ? 'gate' : null;
+export function opportunityFor(pageId, checkpoints = []) {
+  return checkpoints.find(c=>c.page_id===pageId)?.id || null;
 }
 export function createLookahead(api, changed = () => {}) {
   let entry = null, generation = 0, timer = null;
