@@ -11,7 +11,8 @@ detector:
   model: yolov8s-worldv2.pt     # m/l/x-worldv2 are more accurate but slower
   vocabulary: vocabulary.txt    # a file (one name per line) or an inline list
   confidence: 0.25              # open-vocabulary scores run lower than COCO's
-  image_size: 640
+  image_size: 640               # 480 or 416 is faster, at some cost to small objects
+  device: auto                  # auto = NVIDIA GPU (cuda, incl. Jetson), then Apple GPU (mps), then cpu
   # For the Jetson, bake the vocabulary in once, then point at the result
   # and remove `vocabulary` (no CLIP text encoding at startup):
   #   python -m cane_vision.bake --export engine

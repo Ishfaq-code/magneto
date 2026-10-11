@@ -11,6 +11,7 @@ last few frames' selections, which smooths over a single blurry frame.
 from __future__ import annotations
 
 import argparse
+import threading
 import time
 from collections import Counter, deque
 from dataclasses import dataclass, field
@@ -74,6 +75,49 @@ class TouchTracker:
         self._last_label, self._last_time = label, now
         if label == self._streak_label:
             self._streak_announced = True
+
+
+class LatestFrame:
+    """Reads a live camera on its own thread and keeps only the newest frame.
+
+    Without this, frames queue up whenever detection is slower than the
+    camera, and the preview (and what the cane "touches") falls further and
+    further behind. Video files don't need it: there every frame is wanted.
+    """
+
+    def __init__(self, cap: cv2.VideoCapture):
+        self.cap = cap
+        self._frame = None
+        self._ok = True
+        self._stopped = False
+        self._new = threading.Condition()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self) -> None:
+        while self._ok and not self._stopped:
+            ok, frame = self.cap.read()
+            with self._new:
+                self._ok = ok
+                if ok:
+                    self._frame = frame
+                self._new.notify_all()
+
+    def read(self):
+        """Wait for a frame newer than the last one returned."""
+        with self._new:
+            self._new.wait_for(lambda: self._frame is not None or not self._ok)
+            frame, self._frame = self._frame, None
+            return (frame is not None), frame
+
+    def release(self) -> None:
+        self._stopped = True
+        self._thread.join(timeout=1)
+        self.cap.release()
+
+
+def is_live(source: str | int) -> bool:
+    return isinstance(source, int) or str(source).startswith(("rtsp://", "http://", "https://"))
 
 
 def resolve_detector_config(det_cfg: dict, base_dir: Path) -> dict:
@@ -188,12 +232,13 @@ class CaneVision:
         cap = cv2.VideoCapture(source)
         if not cap.isOpened():
             raise SystemExit(f"Could not open video source: {source}")
+        frames = LatestFrame(cap) if is_live(source) else cap
         if not display and self.mode == "key":
             print("No display, so SPACE can't be read: switching to dwell mode.")
             self.mode = "dwell"
         try:
             while True:
-                ok, frame = cap.read()
+                ok, frame = frames.read()
                 if not ok:
                     break
                 detections, touched = self.process(frame)
@@ -209,7 +254,7 @@ class CaneVision:
                     if key == ord(" "):
                         self.announce(self.tracker.voted())
         finally:
-            cap.release()
+            frames.release()
             self.cell.stop()
             self.speaker.stop()
             if display:
@@ -236,7 +281,7 @@ def main() -> None:
 
     app = CaneVision(config, Path(args.config).resolve().parent)
     cell = getattr(app.cell, "port_name", "console")
-    print(f"speech: {app.speaker.engine}   trigger: {app.mode}   cell: {cell}")
+    print(f"device: {app.detector.device}   speech: {app.speaker.engine}   trigger: {app.mode}   cell: {cell}")
     display = not args.no_display
     if Path(args.source).suffix.lower() in IMAGE_SUFFIXES:
         app.run_image(args.source, display)
