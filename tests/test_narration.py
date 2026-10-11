@@ -17,6 +17,24 @@ class NarrationTests(unittest.TestCase):
     def convert(self,voice,payload,key):
         self.calls.append((voice,payload));return b'\0\0'*24000
     def build(self,**kwargs):return narration.build(self.script,self.tmp.name,'test-voice',convert=self.convert,**kwargs)
+    def test_local_env_quotes_comments_and_shell_precedence(self):
+        path=Path(self.tmp.name)/'.env'
+        path.write_text('# local settings\nexport ELEVENLABS_API_KEY="local-key" # comment\nELEVENLABS_VOICE_ID=voice123\nOTHER_KEY=ignored\n')
+        env={'ELEVENLABS_API_KEY':'shell-key'}
+        narration.load_local_env(path,env)
+        self.assertEqual(env,{'ELEVENLABS_API_KEY':'shell-key','ELEVENLABS_VOICE_ID':'voice123'})
+    def test_env_is_literal_and_bad_values_do_not_leak(self):
+        path=Path(self.tmp.name)/'.env'
+        path.write_text("ELEVENLABS_API_KEY='$(command)'\n")
+        env={};narration.load_local_env(path,env)
+        self.assertEqual(env['ELEVENLABS_API_KEY'],'$(command)')
+        path.write_text('ELEVENLABS_API_KEY="private-invalid-value\n')
+        with self.assertRaises(ValueError) as caught:narration.load_local_env(path,{})
+        self.assertNotIn('private-invalid-value',str(caught.exception))
+    def test_missing_env_file_is_optional(self):
+        env={};narration.load_local_env(Path(self.tmp.name)/'missing',env)
+        self.assertEqual(env,{})
+
     def test_reuses_audio_and_regenerates_only_changed_text(self):
         first=self.build();self.assertEqual(first['generate'],2)
         manifest=json.loads(Path(first['manifest']).read_text())

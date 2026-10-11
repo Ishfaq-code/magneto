@@ -7,6 +7,7 @@ import math
 import os
 from pathlib import Path
 import re
+import shlex
 import tempfile
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, build_opener, HTTPRedirectHandler
@@ -126,15 +127,36 @@ def build(script, output_root, voice_id, *, api_key=None, dry_run=False, convert
     return {'generate': generated, 'reuse': reused, 'dry_run': dry_run, 'manifest': str(folder / 'manifest.json')}
 
 
+def load_local_env(path, environ=None):
+    """Read only narration settings. Never execute shell code or expand variables."""
+    environ = os.environ if environ is None else environ
+    if not path.exists(): return
+    pending = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line.startswith('export '): line = line[7:].lstrip()
+        key, separator, value = line.partition('=')
+        key = key.strip()
+        if not separator or key not in ('ELEVENLABS_API_KEY', 'ELEVENLABS_VOICE_ID'): continue
+        try:
+            parts = shlex.split(value, comments=True, posix=True)
+        except ValueError:
+            raise ValueError('Invalid quoted ElevenLabs setting in .env.') from None
+        if len(parts) > 1: raise ValueError('Quote ElevenLabs settings containing spaces in .env.')
+        pending[key] = parts[0] if parts else ''
+    for key, value in pending.items(): environ.setdefault(key, value)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('script', type=Path)
     parser.add_argument('--output-root', type=Path, default=ROOT/'web/learn/narration')
-    parser.add_argument('--voice-id', default=os.environ.get('ELEVENLABS_VOICE_ID'))
+    parser.add_argument('--voice-id')
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
     try:
-        result=build(json.loads(args.script.read_text()), args.output_root, args.voice_id,
+        load_local_env(ROOT / '.env')
+        result=build(json.loads(args.script.read_text()), args.output_root, args.voice_id or os.environ.get('ELEVENLABS_VOICE_ID'),
             api_key=os.environ.get('ELEVENLABS_API_KEY'), dry_run=args.dry_run)
     except (ValueError, OSError) as exc:
         parser.exit(1, f'{exc}\n')

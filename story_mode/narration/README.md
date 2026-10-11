@@ -10,8 +10,17 @@ voice; playback needs only the generated local files.
 
 1. Copy `peter-rabbit.example.json` and edit the script. The example contains **two excerpts**, not
    a complete audiobook. Use the reader's book ID (`builtin-peter-rabbit` for the included book).
-2. Set `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` in your shell environment. The wrapper reads
-   the environment directly; it does not load `.env` files. Never put the key in scripts or manifests.
+2. Put your credentials in the repository-root `.env` (outside the served `web/` directory):
+
+   ```dotenv
+   ELEVENLABS_API_KEY=your-api-key
+   ELEVENLABS_VOICE_ID=your-voice-id
+   ```
+
+   See `env.example`. The wrapper loads these two settings automatically; `.env` is git-ignored.
+   Existing shell variables take precedence, and `--voice-id` overrides both. Quoted values, comments
+   and an optional `export` prefix are supported; shell commands and variable expansion are never
+   executed. Keep the key out of scripts and manifests.
 3. Preview work without credentials or network calls:
 
    ```sh
@@ -42,7 +51,8 @@ and `passages`. Each passage has a unique safe `id`, literal `match_text` from t
 `text` containing the actual narration. IDs and versions use letters, digits, underscores and hyphens.
 Match text is normalized for case and whitespace in the reader. Ambiguous matches play nothing.
 Use a distinct snippet per displayed passage; keep clips aligned with the page boundaries in this
-reader. Recheck matches after editing the book. This wrapper does not extract or paginate ebooks.
+reader. Recheck matches after editing the book. This wrapper does not extract or paginate ebooks. Prepare page-aligned script entries first, then
+generate one clip per entry and reuse it. It does not generate one long audiobook and cut it afterward.
 
 Choose voice settings explicitly in the script: stability, similarity_boost and style between 0–1,
 and use_speaker_boost as a boolean. Each script passage is limited to 4,000 characters; split longer
