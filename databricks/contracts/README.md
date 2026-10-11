@@ -63,3 +63,9 @@ Use the existing references volume for explicitly uploaded sources, one future D
 4. For incompatible changes, create a new version, provide producer/consumer migration notes, and update examples and checks together. Do not silently loosen a validator or create another conflicting contract document.
 
 `guidance_ids` on decisions and retrieved guidance in the model snapshot are **deferred extensions**, not accepted v1 fields. Integrating them requires a coordinated contract change; the current live validator would reject them. Internal research extraction formats, chunking, index settings, and hardware protocols can evolve independently while these boundaries remain stable.
+
+## Local narration assets
+
+The optional [narration format 1.0](../../story_mode/narration/README.md) connects the local ElevenLabs
+build command to the browser reader through generated WAV files and a playback manifest. It is
+separate from learner telemetry and requires no lakehouse storage or deployed wire-format change.

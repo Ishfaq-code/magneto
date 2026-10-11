@@ -137,11 +137,11 @@ Restart the local server and reload the reader to use the new routes. The cache 
 at most one entry per controller session (the existing controller caps sessions at 100). Speculative
 work already running may finish after navigation, but cannot change the lesson or become usable.
 
-There is no ElevenLabs narration adapter in this branch yet. Passage-open is the implemented trigger,
-which overlaps reading now and can overlap recorded narration when playback is connected. A separate
-book-audio job should generate passage-aligned audio and a versioned playback manifest. Store audio as
-files/object storage and, if needed, track manifest metadata in the lakehouse; do not query it between
-spoken passages. That job and speech-audio pre-generation are not implemented by this change.
+The optional [local narration build](narration/README.md) generates cached passage WAV files and a
+versioned manifest through ElevenLabs. The reader plays these local files with explicit controls;
+passage-open remains the decision-preparation trigger. Audio pauses on navigation or teacher
+interaction. No live synthesis or lakehouse lookup occurs during playback. The example covers two
+Rabbit excerpts, not the whole book; API voice generation still needs configured credentials.
 
 One local synthetic live test measured **3,912 ms** for preparation and **0.47 ms** for the later HTTP
 apply request (**0.05 ms** inside the dispatcher). Preparation left the controller state exactly unchanged.
@@ -181,7 +181,8 @@ The orchestrator displays a concise evidence summary and tool trace, never priva
 
 No microphone capture, speech recognition, hardware actuation, automatic mastery scoring, or durable
 learner records are implemented. Braille is a visual preview; the teacher must supply tactile material.
-Browser text-to-speech runs only after an explicit teacher action. It is not recorded narration.
+Browser text-to-speech for teaching prompts runs only after an explicit teacher action. Optional
+recorded book narration is a separate local audio player, built ahead of the session.
 
 ## Verification
 
