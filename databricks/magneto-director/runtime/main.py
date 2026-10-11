@@ -16,6 +16,7 @@ import uvicorn
 from agent.agent import configure
 from agent.decision import ContractError, validate_snapshot
 from runtime.adapter import invoke
+from learning.store import LearningStore
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=False)
 
@@ -23,6 +24,11 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=False)
 @asynccontextmanager
 async def lifespan(app):
     configure()
+    from magneto_platform import ServiceConfig, Services
+    services = Services(ServiceConfig.load(Path(__file__).resolve().parents[1] / 'services.toml'))
+    app.state.learning_store = LearningStore(services) if services.config.learning_warehouse_id else None
+    if app.state.learning_store:
+        await asyncio.to_thread(app.state.learning_store.ensure_tables)
     yield
 
 
@@ -58,6 +64,39 @@ async def invocations(request: Request):
     except Exception as exc:
         # Detailed errors stay in the server trace, never in the caller's response.
         raise HTTPException(502,'Decision could not be completed') from exc
+
+
+@app.post('/api/learning/events')
+async def learning_events(request: Request):
+    store = getattr(app.state, 'learning_store', None)
+    if store is None:
+        raise HTTPException(503, 'Learning storage is not configured')
+    try:
+        body = await request.json()
+        from learning.contract import validate_batch
+        payload = validate_batch(body)
+        profile = request.headers.get('x-profile-key')
+        if profile != payload['events'][0]['profile_id']:
+            raise ValueError('Profile header does not match events')
+        return await asyncio.to_thread(store.ingest_events, payload['events'])
+    except Exception as exc:
+        raise HTTPException(400, 'Invalid learning event batch') from exc
+
+
+@app.post('/api/learning/profile')
+async def learning_profile(request: Request):
+    store = getattr(app.state, 'learning_store', None)
+    if store is None:
+        raise HTTPException(503, 'Learning storage is not configured')
+    try:
+        body = await request.json()
+        from learning.contract import validate_profile
+        profile = validate_profile(body)
+        if request.headers.get('x-profile-key') != profile['profile_id']:
+            raise ValueError('Profile header does not match profile')
+        return await asyncio.to_thread(store.create_profile, profile)
+    except Exception as exc:
+        raise HTTPException(400, 'Invalid learning profile') from exc
 
 
 def main():

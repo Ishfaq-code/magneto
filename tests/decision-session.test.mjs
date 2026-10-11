@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {DecisionSession, CONNECTED_KEY} from '../web/learn/decision-session.js';
+import {LearningOutbox, INTELLIGENCE_KEY} from '../web/learn/intelligence.js';
 function storage() { const m = new Map([['magneto-stories-v1','keep books'],['magneto-learning-v1','keep progress'],['magneto-caterpillar-demo-v1','keep old demo']]); return {m,getItem:k=>m.get(k),setItem:(k,v)=>m.set(k,v)}; }
 function result(req, action='continue') { return {request_id:req.request_id,session_id:req.session_id,model:'test-model',elapsed_ms:10,decision:{action,passage_id:req.passage_id,target_letter:action==='teach'?'P':null,prompt:action==='teach'?'Feel this letter.':null,reason:'Test transport response.',based_on_event_id:req.events.at(-1)?.event_id??null}}; }
 const response = r => ({ok:true,json:async()=>r});
@@ -42,4 +43,20 @@ test('malformed result can be retried with a fresh request ID',async()=>{
 test('storage failure keeps working in memory',async()=>{
  const s=session(async(_,o)=>response(result(JSON.parse(o.body))),{storage:{getItem:()=>null,setItem:()=>{throw Error('quota');}}});
  await s.request();assert.equal(s.storageOK,false);assert.equal(s.result.decision.action,'continue');
+});
+test('learning outbox persists until the server acknowledges event IDs',async()=>{
+ const store=storage();let calls=0;const id=()=>randomUUID();
+ const outbox=new LearningOutbox({storage:store,uuid:id,fetcher:async(_,options)=>{calls++;const body=JSON.parse(options.body);assert.equal(body.schema_version,'2.0');return {ok:true,json:async()=>({accepted:1,duplicates:0,event_ids:[body.events[0].event_id]})};}});
+ const event=outbox.enqueue({profile_id:id(),session_id:id(),activity_id:'tuesday_pear',target:'P',outcome:'incorrect'});
+ assert.equal(JSON.parse(store.getItem(INTELLIGENCE_KEY)).length,1);await outbox.flush();assert.equal(calls,1);assert.deepEqual(outbox.events,[]);
+ assert.equal(event.metadata.source,'browser');
+});
+test('learning outbox keeps events after upload failure',async()=>{
+ const store=storage();const outbox=new LearningOutbox({storage:store,uuid:randomUUID,fetcher:async()=>({ok:false,json:async()=>({error:'offline'})})});
+ outbox.enqueue({profile_id:randomUUID(),session_id:randomUUID(),activity_id:'x'});await assert.rejects(outbox.flush(),/offline/);assert.equal(outbox.events.length,1);
+});
+test('learning outbox creates a profile through the local bridge',async()=>{
+ const profile=randomUUID();let request;
+ const outbox=new LearningOutbox({storage:storage(),fetcher:async(_,options)=>{request=JSON.parse(options.body);return {ok:true,json:async()=>({profile_id:profile})};}});
+ assert.deepEqual(await outbox.createProfile({profile_id:profile}),{profile_id:profile});assert.equal(request.profile_id,profile);assert.equal(request.consent,'granted');
 });

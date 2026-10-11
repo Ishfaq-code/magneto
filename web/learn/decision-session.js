@@ -1,4 +1,5 @@
 /** Complete snapshots and transport state only; teaching choices come from Databricks. */
+import {LearningOutbox} from './intelligence.js';
 export const CONNECTED_KEY = 'magneto-connected-demo-v1';
 export const PASSAGE_IDS = ['monday_apple', 'tuesday_pear', 'wednesday_plum'];
 const letters = ['A', 'P', 'P'];
@@ -21,13 +22,13 @@ export function validateResult(result, request) {
 }
 
 export class DecisionSession {
-  constructor({storage = globalThis.localStorage, fetcher = (...args) => globalThis.fetch(...args), uuid = () => crypto.randomUUID(), timeoutMs = 15000} = {}) {
-    this.storage = storage; this.fetcher = fetcher; this.uuid = uuid; this.timeoutMs = timeoutMs;
+  constructor({storage = globalThis.localStorage, fetcher = (...args) => globalThis.fetch(...args), uuid = () => crypto.randomUUID(), timeoutMs = 15000, outbox = null} = {}) {
+    this.storage = storage; this.fetcher = fetcher; this.uuid = uuid; this.timeoutMs = timeoutMs; this.outbox = outbox || new LearningOutbox({storage, fetcher, uuid});
     this.pending = null; this.error = ''; this.storageOK = true; this.generation = 0;
     this.state = this.fresh();
     try {
       const s = JSON.parse(storage.getItem(CONNECTED_KEY) || 'null');
-      if (s && isId(s.session_id) && Number.isInteger(s.step) && s.step >= 0 && s.step <= 3 &&
+       if (s && isId(s.session_id) && isId(s.profile_id) && Number.isInteger(s.step) && s.step >= 0 && s.step <= 3 &&
           Array.isArray(s.events) && s.events.length <= 2 && s.events.every(e => isId(e.event_id) &&
             ['tuesday_pear', 'wednesday_plum'].includes(e.passage_id) && e.target_letter === 'P' && ['correct', 'incorrect', 'help'].includes(e.response)) &&
           s.decisions && typeof s.decisions === 'object' && !Array.isArray(s.decisions) && Array.isArray(s.skipped)) {
@@ -42,7 +43,7 @@ export class DecisionSession {
       }
     } catch { this.storageOK = false; }
   }
-  fresh() { return {session_id: this.uuid(), step: 0, events: [], decisions: {}, skipped: []}; }
+  fresh() { return {session_id: this.uuid(), profile_id: this.uuid(), step: 0, events: [], decisions: {}, skipped: []}; }
   get passage() { return PASSAGE_IDS[this.state.step]; }
   get result() { return this.state.decisions[this.passage]; }
   get skipped() { return this.state.skipped.includes(this.passage); }
@@ -64,6 +65,7 @@ export class DecisionSession {
         !['correct', 'incorrect', 'help'].includes(response)) return;
     if (this.state.events.some(e => e.passage_id === this.passage)) return;
     this.state.events.push({event_id: this.uuid(), passage_id: this.passage, target_letter: 'P', response});
+    try { this.outbox.enqueue({profile_id: this.state.profile_id, session_id: this.state.session_id, activity_id: this.passage, target: 'P', outcome: response}); void this.outbox.flush().catch(() => {}); } catch { /* Local learning progress remains usable without the outbox. */ }
     this.save(); // The actual response is saved before any later request is created.
     this.advance();
   }

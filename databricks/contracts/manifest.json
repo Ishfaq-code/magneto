@@ -3,12 +3,15 @@
   "live_demo_wire_version": "1.0",
   "live_demo_version_field": "out-of-band; do not add to payloads",
   "research_retrieval_status": "agreed contract, integration not implemented",
+  "learning_intelligence_status": "v2 event and profile ingestion boundary implemented; durable table materialization pending deployment",
   "schemas": [
     "v1/browser-request.schema.json",
     "v1/decision.schema.json",
     "v1/guidance.schema.json",
     "v1/retrieval-request.schema.json",
     "v1/retrieval-result.schema.json",
-    "v1/session-snapshot.schema.json"
+    "v1/session-snapshot.schema.json",
+    "v2/interaction-event.schema.json",
+    "v2/profile.schema.json"
   ]
 }

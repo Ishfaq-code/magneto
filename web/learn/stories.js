@@ -125,7 +125,7 @@ export function bindStories(main, render, announce) {
     } catch(error){status.textContent=error instanceof RangeError ? 'This EPUB is damaged or unsupported.' : error.message;event.target.disabled=false;event.target.value='';}
   });
   const redrawDemo = () => { if (opened === 'demo' && location.hash === '#stories') show(); };
-  main.querySelector('#open-demo')?.addEventListener('click', () => { opened = 'demo'; show(); });
+  main.querySelector('#open-demo')?.addEventListener('click', () => { opened = 'demo'; void director.outbox.createProfile({profile_id: director.state.profile_id}).catch(() => {}); show(); });
   main.querySelectorAll('[data-open-book]').forEach(button => button.addEventListener('click', () => { director.cancel(); opened = Number(button.dataset.openBook); show(); }));
   main.querySelectorAll('#story-close, #story-close-done').forEach(button => button.addEventListener('click', () => { director.cancel(); opened = null; show(); }));
   main.querySelector('#demo-next')?.addEventListener('click', () => { director.advance(); show(); });

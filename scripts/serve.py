@@ -8,6 +8,7 @@ import threading
 from urllib.parse import urlparse
 
 from decision_bridge import BridgeError, ContractError, request_decision
+from learning_bridge import LearningError, create_profile, ingest_events
 from story_bridge import handle as handle_story
 
 WEB = Path(__file__).resolve().parents[1] / 'web'
@@ -29,6 +30,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         if handle_story(self): return
+        if self.path == '/api/learning/events':
+            return self.do_learning_events()
+        if self.path == '/api/learning/profile':
+            return self.do_learning_profile()
         if self.path != '/api/decision':
             return self._json(404,{'error':'Unknown API route.'})
         host=self.headers.get('Host','')
@@ -59,6 +64,48 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(502,{'error':'The decision service is unavailable. No activity was started.'})
         finally:
             _pending.release()
+
+    def do_learning_events(self):
+        host=self.headers.get('Host','')
+        if host not in (f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}'):
+            return self._json(403,{'error':'Local requests only.'})
+        origin=self.headers.get('Origin')
+        if origin and origin != 'http://'+host:
+            return self._json(403,{'error':'Same-origin requests only.'})
+        if self.headers.get_content_type() != 'application/json':
+            return self._json(415,{'error':'Send application/json.'})
+        try:
+            length=int(self.headers.get('Content-Length','0'))
+            if not 0 < length <= 65536:
+                return self._json(413,{'error':'Invalid event batch size.'})
+            self.connection.settimeout(5)
+            payload=json.loads(self.rfile.read(length))
+            self._json(200,ingest_events(payload))
+        except (ValueError, TimeoutError, OSError):
+            self._json(400,{'error':'Invalid JSON event batch.'})
+        except LearningError as exc:
+            self._json(exc.status,{'error':str(exc)})
+
+    def do_learning_profile(self):
+        host=self.headers.get('Host','')
+        if host not in (f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}'):
+            return self._json(403,{'error':'Local requests only.'})
+        origin=self.headers.get('Origin')
+        if origin and origin != 'http://'+host:
+            return self._json(403,{'error':'Same-origin requests only.'})
+        if self.headers.get_content_type() != 'application/json':
+            return self._json(415,{'error':'Send application/json.'})
+        try:
+            length=int(self.headers.get('Content-Length','0'))
+            if not 0 < length <= 8192:
+                return self._json(413,{'error':'Invalid profile size.'})
+            self.connection.settimeout(5)
+            profile=json.loads(self.rfile.read(length))
+            self._json(200,create_profile(profile))
+        except (ValueError, TimeoutError, OSError):
+            self._json(400,{'error':'Invalid JSON profile.'})
+        except LearningError as exc:
+            self._json(exc.status,{'error':str(exc)})
 
 
 def main():

@@ -7,6 +7,7 @@ from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
 ROOT=Path(__file__).resolve().parents[1]
 BASE=ROOT/'databricks/contracts/v1'
+V2=ROOT/'databricks/contracts/v2'
 sys.path.insert(0,str(ROOT/'databricks/magneto-director'))
 from agent.decision import make_snapshot, validate_snapshot, validate_decision, DECISION_SCHEMA
 
@@ -39,4 +40,11 @@ bad=copy.deepcopy(result);del bad['matches'][0]['citation'];rejects('retrieval-r
 bad=copy.deepcopy(result);bad['schema_version']='2.0';rejects('retrieval-result',bad)
 bad=read(BASE/'examples/decision-continue.json');bad['prompt']='Unexpected activity';rejects('decision',bad)
 bad=copy.deepcopy(snapshot);bad['schema_version']='1.0';rejects('session-snapshot',bad)
-print(f'Validated {len(validators)} schemas, {len(examples)} examples, live demo fixtures and negative cases. No cloud calls.')
+v2_validators={}
+for path in V2.glob('*.schema.json'):
+    schema=read(path)
+    Draft202012Validator.check_schema(schema)
+    v2_validators[path.name.removesuffix('.schema.json')]=Draft202012Validator(schema,format_checker=FormatChecker())
+v2_validators['interaction-event'].validate(read(V2/'examples/interaction-event.json'))
+v2_validators['profile'].validate(read(V2/'examples/profile.json'))
+print(f'Validated {len(validators)+len(v2_validators)} schemas, {len(examples)+2} examples, live demo fixtures and negative cases. No cloud calls.')

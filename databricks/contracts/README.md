@@ -38,6 +38,12 @@ flowchart LR
 - The director result wraps the decision with `request_id`, `session_id`, `model`, and `elapsed_ms`; Databricks invocation transport wraps that as `{id, status: "completed", output}`. Existing validation remains authoritative for these transport envelopes.
 - The local runtime saves teacher responses before the next request. Device failure is **not** a learner mistake. Device commands/acknowledgements remain the runtime teammate's separate execution interface and do not belong in `events`.
 
+## Learning intelligence v2
+
+The v2 interaction-event and profile schemas define the first durable learning boundary. The browser queues events locally and sends batches through the localhost bridge; event delivery is at-least-once and consumers must deduplicate by `event_id`. Profile IDs are opaque UUIDs and consent is explicit. v2 does not change the deployed v1 decision payload.
+
+The current browser event set is intentionally small. Do not put raw book text, device commands, credentials, or inferred diagnoses in event metadata. Device unavailability is its own event outcome and is never a learner error.
+
 ## Storage scope
 
 Use the existing references volume for explicitly uploaded sources, one future Delta guidance table feeding an AI Search index, existing MLflow for traces, and current browser-local demo sessions. Table/index creation and retrieval integration are **not** performed by this contract setup. No PostgreSQL/Lakebase, learner database, event replication, branching narrative storage, or separate agent-history database is required.
