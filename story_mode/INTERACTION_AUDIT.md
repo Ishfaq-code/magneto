@@ -145,7 +145,7 @@ sequence tool signatures, activity references and telemetry meanings are unchang
 
 ## Live question stops
 
-The chapter progress bar shows a question marker only for a ready `propose_activity` plan or
+The chapter progress bar shows an upcoming question marker only for a ready `propose_activity` plan or
 an active introduce/identify/match interaction. Draft/failed plans, continue recommendations,
 word-exposure-only proposals and unselected authored checkpoints do not show question markers.
 Markers refresh on preparation/status changes, outcomes and navigation; stale/out-of-window
@@ -153,3 +153,8 @@ plans disappear. The current one-plan/two-page look-ahead means at most one upco
 At the end of page narration, an already-prepared question opens the educator panel and stops
 automatic page turning; the existing educator Start action remains required. A late plan still
 updates the marker, without forcing an interruption in new narration.
+
+Recorded teacher outcomes remain on the timeline as Solved, Solved with help, or Skipped.
+The latest accepted question outcome per checkpoint is restored from the active profile’s
+retained practice history (up to 40 observations); word exposure does not count as a question.
+A planned revisit adds a gold outline while keeping the previous result visible.

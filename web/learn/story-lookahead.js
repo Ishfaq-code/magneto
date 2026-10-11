@@ -35,3 +35,19 @@ export function plannedQuestion({state, passage, windowTargets, status, preview,
       && ['introduce','identify','match'].includes(state?.proposal?.activity))return passage;
   return status==='ready' && preview?.tool==='propose_activity' && windowTargets.includes(target)?target:null;
 }
+
+// Only accepted teacher outcomes count; exposure and unconfirmed proposals do not.
+export function questionStops(planned, observations = [], checkpoints = []) {
+  const stops = new Map(), known = new Set(checkpoints.map(c=>c.id));
+  const outcomes = {independent:'solved',with_help:'assisted',try_later:'skipped'};
+  for (const row of observations) {
+    if (!row || !known.has(row.passage_id) || row.source!=='teacher' ||
+        !['introduce','identify','match'].includes(row.activity) ||
+        !Object.hasOwn(outcomes,row.outcome) || !Number.isFinite(Date.parse(row.observed_at))) continue;
+    const previous=stops.get(row.passage_id);
+    if (!previous || Date.parse(row.observed_at)>=Date.parse(previous.observedAt))
+      stops.set(row.passage_id,{id:row.passage_id,status:outcomes[row.outcome],observedAt:row.observed_at,planned:false});
+  }
+  if (known.has(planned)) stops.set(planned,{...(stops.get(planned)||{id:planned,status:'planned'}),planned:true});
+  return [...stops.values()];
+}

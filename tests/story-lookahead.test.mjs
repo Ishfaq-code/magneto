@@ -39,3 +39,19 @@ test('question markers track only ready or active questions in the current windo
  assert.equal(plannedQuestion({...active,state:{...active.state,phase:'complete'}}),null);
  assert.equal(plannedQuestion({...active,passage:'gate'}),null);
 });
+
+test('recorded question results survive plan changes and keep status on a planned revisit',async()=>{
+ const {questionStops}=await import('../web/learn/story-lookahead.js');
+ const checkpoints=[{id:'rabbit'},{id:'gate'},{id:'lettuce'}];
+ const row={passage_id:'rabbit',source:'teacher',activity:'identify',outcome:'independent',observed_at:'2026-10-11T12:00:00Z'};
+ let stops=questionStops('gate',[row],checkpoints);
+ assert.deepEqual(stops.map(s=>[s.id,s.status]),[['rabbit','solved'],['gate','planned']]);
+ assert.equal(questionStops(null,[row],checkpoints)[0].status,'solved');
+ stops=questionStops('rabbit',[row],checkpoints);
+ assert.equal(stops[0].status,'solved');assert.equal(stops[0].planned,true);
+ const assisted={...row,outcome:'with_help',observed_at:'2026-10-11T13:00:00Z'};
+ assert.equal(questionStops(null,[assisted,row],checkpoints)[0].status,'assisted');
+ assert.equal(questionStops(null,[{...row,outcome:'try_later'}],checkpoints)[0].status,'skipped');
+ for(const change of [{activity:'emphasize'},{source:'agent'},{outcome:'unknown'},{passage_id:'unknown'},{observed_at:'invalid'}])
+   assert.deepEqual(questionStops(null,[{...row,...change}],checkpoints),[]);
+});

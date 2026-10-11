@@ -1,10 +1,10 @@
 import {StoryMemory} from './story-memory.js';
-import {createLookahead, opportunityFor, plannedQuestion} from './story-lookahead.js?v=question-stops-1';
+import {createLookahead, opportunityFor, plannedQuestion, questionStops} from './story-lookahead.js?v=question-status-1';
 import {createInteractionPlayer, feedbackFor} from './interaction-player.js';
 import { createPreparation } from './story-preparation.js';
 // Teacher console. The server owns session state; model proposals never directly drive hardware.
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function mountStoryCoach({player, enabled, checkpoints = [], pause, onResume = () => {}, onPlannedQuestion = () => {}}) {
+export function mountStoryCoach({player, enabled, checkpoints = [], pause, onResume = () => {}, onQuestionStops = () => {}}) {
   if(!enabled)return {context(){},dispose(){},isPaused(){return false;}};
   const panel=document.createElement('aside');panel.className='story-coach';panel.hidden=true;panel.setAttribute('aria-label','Teacher story coach');player.append(panel);
   let state=null,open=false,busy=false,error='',passage=null,version=0,disposed=false,lastSpeech='',latestPage=undefined;
@@ -23,7 +23,7 @@ export function mountStoryCoach({player, enabled, checkpoints = [], pause, onRes
   async function api(path,payload){const response=await fetch('/api/story/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});let data;try{data=await response.json();}catch{throw Error('Story Mode needs the updated local server.');}if(!response.ok)throw Error(data.error||'Story Mode unavailable.');return data;}
   function render(){
     if(disposed)return;
-    onPlannedQuestion(plannedQuestion({state,passage,windowTargets,status:lookahead.status,preview:lookahead.preview,target:lookahead.target}));
+    onQuestionStops(questionStops(plannedQuestion({state,passage,windowTargets,status:lookahead.status,preview:lookahead.preview,target:lookahead.target}), [...memory.rows, ...(state?.observations||[])], checkpoints));
     lockControls(['awaiting_tactile','ready','waiting_response','awaiting_confirmation'].includes(state?.phase));panel.hidden=!open;if(!open)return;
     const phase=state?.phase||'reading',preview=readyHere()?lookahead.preview:null,proposal=state?.proposal||(['propose_activity','propose_word_emphasis'].includes(preview?.tool)?{...preview.arguments,kind:preview.arguments.target.length===1?'letter':'word'}:preview?.arguments);
     const button=(action,label)=>`<button data-coach="${action}" ${busy?'disabled':''}>${label}</button>`;
