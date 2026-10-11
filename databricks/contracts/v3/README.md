@@ -2,6 +2,21 @@
 
 Status: implemented upload boundary; no deployment or history-to-planner integration implied.
 
+## Milestone 1: collect and deliver learning telemetry
+
+PR #7 establishes the ingestion foundation: capture selected learning outcomes, retain stable student and attempt IDs, queue bounded batches, validate them, and acknowledge successful lakehouse writes. It is the first part of returning learning telemetry to the lakehouse. Local checks validate this code path; live lakehouse delivery still needs deployment and end-to-end verification.
+
+The remaining milestones are:
+
+1. Configure and deploy storage, then verify a synthetic session reaches the intended lakehouse tables.
+2. Connect the Peter Rabbit coach and Orin harness to the same lean contract, keeping raw device telemetry outside learning attempts.
+3. Build analysis and a Personal Intelligence tab showing evidence-linked student facts and learned behaviors with teacher review and correction.
+4. Feed selected student history and, when connected, research context into teaching decisions and apply supported story adjustments through MCP.
+
+The current SQL readback verifies uploads; it does not supply student history to the teaching planner. The adaptive teaching loop remains a later milestone.
+
+## Record scope
+
 One record describes one observed attempt. Student identity, session identity and schema version travel once per batch. The server restores them on each Delta row. New attempts use stable UUIDs; upload retries reuse those IDs. Session restarts retain the selected browser profile and create a new session ID.
 
 `activity-catalog.json` is immutable by activity reference: changing a target, task, or story context requires a new reference version. Catalog entries contain context once; attempts contain only result, support, assessment and observation time. Unknown activity references and extra fields are rejected. No transcript, raw media, model explanation, timing metric, or device command is accepted.
