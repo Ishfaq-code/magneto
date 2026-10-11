@@ -32,7 +32,12 @@ def prepare():
     if not pages or not pages[-1]['text'].endswith('blackberries for supper.'):
         raise ValueError('Story boundaries changed; review the extraction before synthesis.')
     template=json.loads((ROOT/'story_mode/narration/peter-rabbit.example.json').read_text())
-    template.update(script_version='full-book-1',passages=pages)
+    opening = {
+        'id':'title-opening',
+        'match_text':'A little rabbit. A very big adventure.',
+        'text':"The Tale of Peter Rabbit, by Beatrix Potter. Settle in, and imagine a little rabbit with quick paws, curious whiskers, and a very big appetite for adventure. Beyond the garden gate, something delicious is growing... and someone is keeping a very close eye on it. Shall we see where Peter's curiosity takes him?"
+    }
+    template.update(script_version='full-book-2',passages=[opening, *pages])
     return template
 
 

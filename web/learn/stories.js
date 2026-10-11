@@ -1,6 +1,7 @@
+import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js';
 import { DecisionSession } from './decision-session.js';
 import { peterActivities, bindPeterActivities } from './peter-activities.js';
-import { mountFlipbook } from './flipbook.js?v=story-mcp-3';
+import { mountFlipbook } from './flipbook.js?v=peter-title-first-2';
 import { importEbook, ebookStore } from './ebook.js';
 // Reading records are separate from learning progress and saved CAD designs.
 const key = 'magneto-stories-v1';
@@ -24,6 +25,14 @@ try {
     if (Number.isSafeInteger(saved[field]) && saved[field] >= 0 && (field !== 'total' || saved[field] > 0)) peter[field] = saved[field];
   }
   if (typeof saved.finished === 'boolean') peter.finished = saved.finished;
+  if (typeof saved.readingVersion === 'string') peter.readingVersion = saved.readingVersion;
+  if (saved.previousReadingPosition && typeof saved.previousReadingPosition === 'object') {
+    peter.previousReadingPosition = {};
+    for (const field of ['position','page','pageFraction']) {
+      const value = saved.previousReadingPosition[field];
+      if (Number.isFinite(value) && value >= 0) peter.previousReadingPosition[field] = value;
+    }
+  }
   if (Number.isFinite(saved.pageFraction) && saved.pageFraction >= 0 && saved.pageFraction <= 1) peter.pageFraction = saved.pageFraction;
 } catch { storageOK = false; }
 const selectedBook = () => opened === 'peter' ? peter : Number.isInteger(opened) ? books[opened] : null;
@@ -31,7 +40,11 @@ async function loadBook(book) {
   if (!book.bundled) return ebookStore('get',book.id);
   const response = await fetch('./books/the-tale-of-peter-rabbit.epub');
   if (!response.ok) throw Error('Peter Rabbit could not be opened. Please reload and try again.');
-  const content = await importEbook(new File([await response.blob()], 'the-tale-of-peter-rabbit.epub'));
+  const content = preparePeterReading(await importEbook(new File([await response.blob()], 'the-tale-of-peter-rabbit.epub')));
+  if(book.readingVersion !== PETER_READING_VERSION){
+    book.previousReadingPosition={position:book.position,page:book.page,pageFraction:book.pageFraction};
+    Object.assign(book,{position:content.readingStart,page:0,pageFraction:0,current:content.readingStart,finished:false,readingVersion:PETER_READING_VERSION});
+  }
   book.total = content.chapters.length;
   book.position = Math.min(book.position, book.total-1);
   book.current = Math.min(book.current, book.total);

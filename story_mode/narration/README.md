@@ -8,8 +8,15 @@ voice; playback needs only the generated local files.
 
 ## Full Peter Rabbit book
 
-The included edition is prepared as 27 story clips (reader chapter 2, pages 3–29), excluding
-publisher and license front matter. Regenerate its editable script with:
+The included edition has 28 clips: an original, newly written narrator introduction on the title
+page, followed by 27 passages of Beatrix Potter's original story. The reader opens at the title
+(chapter 2, page 1); “Once upon a time” is page 2, with its own matching recording. Publication
+front matter moves into a separate Publication details section. The EPUB, cover and license remain
+intact. Existing bookmarks are backed up in `previousReadingPosition` during the one-time move to
+the title; later visits resume normally. Stable `page-03` through `page-29` audio IDs retain their
+original source numbering, rather than the new displayed page numbers.
+
+Regenerate the editable script and audio with:
 
 ```sh
 npm run prepare:narration:peter
@@ -17,10 +24,9 @@ npm run build:narration -- story_mode/narration/peter-rabbit.json
 ```
 
 The edition-specific extractor follows illustration boundaries; it is not a general EPUB importer.
-On 2026-10-11, live ElevenLabs generation produced all 27 clips (305.81 seconds total, 14.68 MB).
-Browser verification matched every clip to the actual reader page and confirmed a real clip played.
-A subsequent dry run reused all 27. Audio stays local and git-ignored; the full narration script is
-versioned. Credentials and generated voice metadata are not committed.
+On 2026-10-11, all 28 clips were regenerated using the updated local voice setting. Audio stays
+local and git-ignored; the full narration script is versioned. Credentials and generated voice
+metadata are not committed.
 
 ## Build and play
 

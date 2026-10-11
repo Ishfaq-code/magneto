@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "book_id": "builtin-peter-rabbit",
-  "script_version": "full-book-1",
+  "script_version": "full-book-2",
   "model_id": "eleven_multilingual_v2",
   "voice_settings": {
     "stability": 0.5,
@@ -10,6 +10,11 @@
     "use_speaker_boost": true
   },
   "passages": [
+    {
+      "id": "title-opening",
+      "match_text": "A little rabbit. A very big adventure.",
+      "text": "The Tale of Peter Rabbit, by Beatrix Potter. Settle in, and imagine a little rabbit with quick paws, curious whiskers, and a very big appetite for adventure. Beyond the garden gate, something delicious is growing... and someone is keeping a very close eye on it. Shall we see where Peter's curiosity takes him?"
+    },
     {
       "id": "page-03",
       "match_text": "Once upon a time there were four little Rabbits, and their names were—",

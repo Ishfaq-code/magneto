@@ -23,10 +23,10 @@ class NarrationTests(unittest.TestCase):
         script=prepare.prepare()
         self.assertEqual(script,json.loads((ROOT/'story_mode/narration/peter-rabbit.json').read_text()))
         narration.validate(script)
-        self.assertEqual([p['id'] for p in script['passages']],[f'page-{n:02d}' for n in range(3,30)])
-        for passage in script['passages']:
+        self.assertEqual([p['id'] for p in script['passages']],['title-opening',*[f'page-{n:02d}' for n in range(3,30)]])
+        for passage in script['passages'][1:]:
             self.assertEqual(sum(passage['match_text'].lower() in p['text'].lower() for p in script['passages']),1)
-        self.assertIn('Flopsy,',script['passages'][0]['text'])
+        self.assertIn('Flopsy,',script['passages'][1]['text'])
         self.assertTrue(script['passages'][-1]['text'].endswith('blackberries for supper.'))
 
     def test_local_env_quotes_comments_and_shell_precedence(self):
