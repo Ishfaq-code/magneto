@@ -1,3 +1,4 @@
+import { createPreparation } from './story-preparation.js';
 // Teacher console. The server owns session state; model proposals never directly drive hardware.
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function mountStoryCoach({player, enabled, pause}) {
@@ -6,6 +7,7 @@ export function mountStoryCoach({player, enabled, pause}) {
   let state=null,open=false,busy=false,error='',passage=null,version=0,disposed=false,lastSpeech='',latestText='';
   let queue=Promise.resolve();
   const lockedControls=new Map();
+  const preparation=createPreparation(api, render);
   function lockControls(locked){
     const controls=player.querySelectorAll('#reader-play,#reader-prev,#reader-next,#reader-seek,#reader-chapter');
     controls.forEach(control=>{if(locked){if(!lockedControls.has(control))lockedControls.set(control,control.disabled);control.disabled=true;}else if(lockedControls.has(control)){control.disabled=lockedControls.get(control);lockedControls.delete(control);}});
@@ -15,14 +17,14 @@ export function mountStoryCoach({player, enabled, pause}) {
     if(disposed)return;lockControls(['awaiting_tactile','ready','waiting_response','awaiting_confirmation'].includes(state?.phase));panel.hidden=!open;if(!open)return;
     const phase=state?.phase||'reading',proposal=state?.proposal;
     const button=(action,label)=>`<button data-coach="${action}" ${busy?'disabled':''}>${label}</button>`;
-    panel.innerHTML=`<header><span>TEACHER · STORY COACH</span><button data-coach="close" aria-label="Close teacher panel">×</button></header><p class="coach-state" role="status">${busy?'Orchestrator working…':esc(phase.replaceAll('_',' '))}</p>${error?`<p class="coach-error" role="alert">${esc(error)}</p>`:''}<h2>${proposal?.target?esc(proposal.kind+' · '+proposal.target):'A moment to learn'}</h2><p>${esc(proposal?.reason||'Ask the orchestrator whether a short Braille activity fits this passage.')}</p>${proposal?.prompt?`<div class="coach-prompt"><small>LEARNER PROMPT</small><p>${esc(proposal.prompt)}</p></div>`:''}${state?.braille?`<div class="coach-cells" aria-label="Visual Braille preview">${state.braille.cells.map(c=>`<span><b>${String.fromCodePoint(0x2800+c.dots.reduce((n,d)=>n+(1<<(d-1)),0))}</b><small>${esc(c.letter)} · ${c.dots.join(',')}</small></span>`).join('')}</div>`:''}<div class="coach-actions">${['reading','proposed','continue_proposed'].includes(phase)?button('orchestrate','Ask orchestrator'):''}${phase==='proposed'?button('approve_activity','Start activity'):''}${phase==='awaiting_tactile'?button('confirm_tactile','Tactile material offered'):''}${['ready','waiting_response'].includes(phase)?button('speak_prompt',phase==='ready'?'Speak prompt':'Repeat prompt'):''}${phase==='waiting_response'?button('give_hint','Give a hint'):''}${['waiting_response','awaiting_confirmation'].includes(phase)?`${button('independent','Independent')}${button('with_help','With help')}${button('try_later','Try later')}`:''}${button('resume_story',phase==='reading'?'Close and read':'Skip / Continue story')}</div><p class="coach-note">${state?.braille?'Preview only. Teacher supplies tactile Braille.':'Teaching proposals via MCP · Teacher confirms learning observations.'} Microphone not connected.</p><details><summary>Tool activity</summary><ol>${(state?.trace||[]).slice(-8).map(t=>`<li>${esc(t.actor)} · ${esc(t.tool)}</li>`).join('')}</ol></details>`;
+    panel.innerHTML=`<header><span>TEACHER · STORY COACH</span><button data-coach="close" aria-label="Close teacher panel">×</button></header><p class="coach-state" role="status">${busy?'Orchestrator working…':esc(phase.replaceAll('_',' '))}</p>${error?`<p class="coach-error" role="alert">${esc(error)}</p>`:''}${phase==='reading'&&passage?`<p class="coach-note" role="status">${preparation.status==='ready'?'Decision prepared. Ready when you are.':preparation.status==='preparing'?'Preparing a teaching decision while you read…':preparation.status==='failed'?'Preparation unavailable. Ask again or continue reading.':''}</p>`:''}<h2>${proposal?.target?esc(proposal.kind+' · '+proposal.target):'A moment to learn'}</h2><p>${esc(proposal?.reason||'Ask the orchestrator whether a short Braille activity fits this passage.')}</p>${proposal?.prompt?`<div class="coach-prompt"><small>LEARNER PROMPT</small><p>${esc(proposal.prompt)}</p></div>`:''}${state?.braille?`<div class="coach-cells" aria-label="Visual Braille preview">${state.braille.cells.map(c=>`<span><b>${String.fromCodePoint(0x2800+c.dots.reduce((n,d)=>n+(1<<(d-1)),0))}</b><small>${esc(c.letter)} · ${c.dots.join(',')}</small></span>`).join('')}</div>`:''}<div class="coach-actions">${['reading','proposed','continue_proposed'].includes(phase)?button('orchestrate',preparation.status==='ready'?'Use prepared decision':preparation.status==='preparing'?'Wait for decision': 'Ask orchestrator'):''}${phase==='proposed'?button('approve_activity','Start activity'):''}${phase==='awaiting_tactile'?button('confirm_tactile','Tactile material offered'):''}${['ready','waiting_response'].includes(phase)?button('speak_prompt',phase==='ready'?'Speak prompt':'Repeat prompt'):''}${phase==='waiting_response'?button('give_hint','Give a hint'):''}${['waiting_response','awaiting_confirmation'].includes(phase)?`${button('independent','Independent')}${button('with_help','With help')}${button('try_later','Try later')}`:''}${button('resume_story',phase==='reading'?'Close and read':'Skip / Continue story')}</div><p class="coach-note">${state?.braille?'Preview only. Teacher supplies tactile Braille.':'Teaching proposals via MCP · Teacher confirms learning observations.'} Microphone not connected.</p><details><summary>Tool activity</summary><ol>${(state?.trace||[]).slice(-8).map(t=>`<li>${esc(t.actor)} · ${esc(t.tool)}</li>`).join('')}</ol></details>`;
   }
-  async function syncContext(){
+  async function syncContext(target=passage){
     if(!state)state=await api('session',{});
     else state=await api('action',{session_id:state.session_id,name:'get_story_context'});
-    state=await api('action',{session_id:state.session_id,revision:state.revision,name:'set_context',arguments:{passage_id:passage}});
+    state=await api('action',{session_id:state.session_id,revision:state.revision,name:'set_context',arguments:{passage_id:target}});
   }
-  async function action(name,args={}){const token=version;const result=await api('action',{session_id:state.session_id,revision:state.revision,name,arguments:args});if(disposed||token!==version)throw Error('Story context changed.');state=result;}
+  async function action(name,args={}){const token=version;const result=await api('action',{session_id:state.session_id,revision:state.revision,name,arguments:args});if(disposed||token!==version)throw Error('Story context changed.');state=result;preparation.invalidate();}
   async function run(name){
     if(busy||disposed)return;pause();busy=true;error='';render();const token=version;
     try{
@@ -31,7 +33,7 @@ export function mountStoryCoach({player, enabled, pause}) {
       if(!state)await syncContext();
       if(name==='orchestrate'){
         if(!passage)throw Error('No curated opportunity on this spread. Try meeting Peter, the gate, or the vegetables.');
-        const result=await api('orchestrate',{session_id:state.session_id,revision:state.revision});
+        const result=await preparation.apply(state);
         if(disposed||token!==version)return;state=result.state;
       }else if(['independent','with_help','try_later'].includes(name))await action('record_observation',{outcome:name});
       else{
@@ -55,9 +57,15 @@ export function mountStoryCoach({player, enabled, pause}) {
       if(text===latestText)return;latestText=text;version++;error='';
       passage=/lettuces.*French beans.*radishes/s.test(text)?'lettuce':/four little Rabbits/i.test(text)?'rabbit':/squeezed under the gate/i.test(text)?'gate':null;
       window.speechSynthesis?.cancel();
-      if(state){queue=queue.catch(()=>{}).then(syncContext).catch(e=>{error=e.message;}).finally(render);}
+      preparation.invalidate();
+      const token=version,target=passage;
+      if(state||target){queue=queue.catch(()=>{}).then(async()=>{
+        if(disposed||token!==version)return;
+        await syncContext(target);
+        if(!disposed&&token===version&&target)preparation.prepare(state).catch(()=>{});
+      }).catch(e=>{if(token===version)error=e.message;}).finally(render);}
       render();
     },
-    dispose(){lockControls(false);disposed=true;version++;window.speechSynthesis?.cancel();if(state){queue.catch(()=>{}).then(()=>api('action',{session_id:state.session_id,revision:state.revision,name:'set_context',arguments:{passage_id:null}})).catch(()=>{});}panel.remove();}
+    dispose(){lockControls(false);disposed=true;version++;preparation.invalidate();window.speechSynthesis?.cancel();if(state){queue.catch(()=>{}).then(()=>api('action',{session_id:state.session_id,revision:state.revision,name:'set_context',arguments:{passage_id:null}})).catch(()=>{});}panel.remove();}
   };
 }

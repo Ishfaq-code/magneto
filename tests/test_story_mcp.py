@@ -8,6 +8,9 @@ from pathlib import Path
 import sys
 import threading
 import unittest
+from unittest.mock import patch
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'scripts')]
@@ -66,6 +69,45 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(Exception):asyncio.run(run(self.s,late))
         self.assertEqual(controller.get(self.s['session_id'])['passage_id'],'gate')
         self.assertIsNone(controller.get(self.s['session_id'])['proposal'])
+    def test_prepare_and_apply_http_routes(self):
+        def request(path, body):
+            base=os.environ['MAGNETO_STORY_URL']
+            req=Request(base+'/api/story/'+path,data=json.dumps(body).encode(),
+                headers={'Content-Type':'application/json','Origin':base})
+            with urlopen(req,timeout=10) as response:return json.load(response)
+        def fixture(messages):
+            return json.dumps({'tool':'recommend_continue','arguments':{
+                'session_id':self.s['session_id'],'revision':self.s['revision'],'reason':'Synthetic prepared recommendation.'}})
+        def prepare_only(body,port,*,prepare_only=False):
+            self.assertTrue(prepare_only)
+            return asyncio.run(run({**body,'prepare_only':True},fixture))
+        identity={'session_id':self.s['session_id'],'revision':self.s['revision']}
+        before=controller.get(self.s['session_id'])
+        with patch('story_bridge.orchestrate',side_effect=prepare_only) as model:
+            prepared=request('prepare',identity)
+            self.assertEqual(request('prepare',identity),prepared)
+            self.assertEqual(controller.get(self.s['session_id']),before)
+            payload={**identity,'preparation_id':prepared['preparation_id']}
+            result=request('apply-prepared',payload)
+            self.assertEqual(result['state']['phase'],'continue_proposed')
+            self.assertEqual(result['orchestrator']['mode'],'prepared')
+            self.assertEqual(model.call_count,1)
+            with self.assertRaises(HTTPError) as error:request('apply-prepared',payload)
+            self.assertEqual(error.exception.code,400)
+            error.exception.close()
+
+    def test_preparation_discovers_tools_without_executing_one(self):
+        def fixture(messages):
+            return json.dumps({'tool':'propose_activity','arguments':{
+                'session_id':self.s['session_id'],'revision':self.s['revision'],
+                'activity':'identify','target':'r','prompt':'What letter do you feel?',
+                'hint':'Explore the middle right dot.','reason':'Synthetic prepared activity.'}})
+        before=controller.get(self.s['session_id'])
+        result=asyncio.run(run({**self.s,'prepare_only':True},fixture))
+        self.assertEqual(result['plan']['tool'],'propose_activity')
+        self.assertIsNone(result['orchestrator']['tool_called'])
+        self.assertEqual(controller.get(self.s['session_id']),before)
+
     def test_budget_skips_model_and_executes_real_mcp(self):
         controller.sessions[self.s['session_id']]['activities_started']=6
         def forbidden(messages):

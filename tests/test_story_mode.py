@@ -4,6 +4,7 @@ import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from story_mode.controller import Controller, StoryError
 from story_mode.selection import decision_context, allowed_tools
+from story_mode.preparation import Preparation
 
 class StoryTests(unittest.TestCase):
     def setUp(self):
@@ -69,5 +70,43 @@ class StoryTests(unittest.TestCase):
         self.c.sessions[self.s['session_id']]['activities_started']=6
         with self.assertRaises(StoryError):self.propose()
         self.call('recommend_continue',{'reason':'The activity limit has been reached.'})
+
+class PreparationTests(unittest.TestCase):
+    def setUp(self):
+        self.c=Controller();self.s=self.c.create()
+        self.s=self.c.call(self.s['session_id'],0,'set_context',{'passage_id':'rabbit'},actor='teacher')
+        self.p=Preparation(self.c)
+        self.plan={'tool':'recommend_continue','arguments':{'session_id':self.s['session_id'],
+            'revision':self.s['revision'],'reason':'Synthetic test recommendation.'}}
+    def begin(self):return self.p.begin(self.s['session_id'],self.s['revision'])
+    def finish(self,ticket):return self.p.finish(self.s['session_id'],ticket,self.plan,{})
+    def test_prepare_does_not_mutate_lesson_and_apply_is_once_only(self):
+        ticket,needed=self.begin();self.assertTrue(needed)
+        self.finish(ticket);self.assertEqual(self.c.get(self.s['session_id']),self.s)
+        cached,needed=self.begin();self.assertFalse(needed)
+        result=self.p.apply(self.s['session_id'],self.s['revision'],cached['preparation_id'])
+        self.assertEqual(result['state']['phase'],'continue_proposed')
+        with self.assertRaises(StoryError):self.p.apply(self.s['session_id'],self.s['revision'],cached['preparation_id'])
+    def test_inflight_duplicate_is_rejected_and_failure_allows_retry(self):
+        ticket,_=self.begin()
+        with self.assertRaises(StoryError):self.begin()
+        self.p.fail(self.s['session_id'],ticket)
+        retry,needed=self.begin();self.assertTrue(needed)
+        self.assertNotEqual(retry['preparation_id'],ticket['preparation_id'])
+    def test_navigation_invalidates_ready_plan(self):
+        ticket,_=self.begin();self.finish(ticket)
+        changed=self.c.call(self.s['session_id'],self.s['revision'],'set_context',{'passage_id':'gate'},actor='teacher')
+        with self.assertRaises(StoryError):self.p.apply(self.s['session_id'],self.s['revision'],ticket['preparation_id'])
+        self.assertEqual(self.c.get(self.s['session_id']),changed)
+    def test_late_completion_cannot_replace_new_preparation(self):
+        old,_=self.begin()
+        self.s=self.c.call(self.s['session_id'],self.s['revision'],'set_context',{'passage_id':'gate'},actor='teacher')
+        new,_=self.begin()
+        with self.assertRaises(StoryError):self.finish(old)
+        self.assertEqual(self.p.entries[self.s['session_id']],new)
+    def test_prepared_plan_cannot_invoke_teacher_tool(self):
+        ticket,_=self.begin();self.plan['tool']='record_observation'
+        with self.assertRaises(ValueError):self.finish(ticket)
+        self.assertEqual(self.c.get(self.s['session_id']),self.s)
 
 if __name__=='__main__':unittest.main()

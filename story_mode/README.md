@@ -1,8 +1,9 @@
 # Story Mode MCP scaffold
 
 A local, teacher-supervised orchestrator for Peter Rabbit. It discovers real MCP tools, reads the
-current controller snapshot, builds a compact decision context, and invokes one validated teaching
-action through MCP stdio. At the activity limit, a deterministic rule recommends continuing.
+current controller snapshot and builds a compact decision context. The reader prepares a validated
+teaching proposal in the background; explicit use applies it through the same local tool dispatcher
+as MCP. The original direct decision path remains available through MCP stdio. At the activity limit, a deterministic rule recommends continuing.
 Other choices use the existing Databricks model. A failed model call leaves the session unchanged
 so the teacher can retry or continue; it never silently substitutes a teaching decision.
 
@@ -39,7 +40,9 @@ python3 scripts/serve.py --port 8091
 The lock records the dependency versions used for local verification. SDK documentation:
 https://py.sdk.modelcontextprotocol.io/v1/ (the 1.x maintenance line is intentionally pinned).
 Open `/learn/#stories`, open the included Peter Rabbit, and select **Teacher coach**.
-On the introduction to the four rabbits, gate passage, or vegetables passage, select **Ask orchestrator**.
+Opening the introduction to the four rabbits, gate passage, or vegetables passage starts background
+preparation. Select **Use prepared decision** when ready, or **Wait for decision** to wait for the current
+preparation. If preparation fails, **Ask orchestrator** retries it; continuing the story remains available.
 The browser sends only a curated passage ID and anonymous teacher observations, not the EPUB or recordings.
 The local adapter uses the existing `magneto` Databricks profile/config in
 `databricks/platform/services.toml`. No credentials are returned to the browser. A failed model request
@@ -105,6 +108,46 @@ an adapter into this Rabbit selector. Do not add live lakehouse queries or resea
 path. Durable restart recovery and device completion acknowledgements are also outside this initial
 change. Existing deployed v1 and learning v2/v3 payloads are unchanged.
 
+### Prepare during reading; apply at the interaction point
+
+`story-preparation.js` starts one request per current browser session/revision when a curated passage
+opens. It does not pause reading, speak, or apply an activity. The ready plan stays on the server;
+the browser holds only a preparation ID. The model prepares the existing activity, prompt and hint.
+Subsequent repeat/hint/teacher-observation controls already execute locally without another model
+call; this change does not add autonomous grading or a generated response-branch tree.
+
+The server discovers the real MCP schemas and validates the plan without calling a mutating MCP
+tool. On explicit use, it checks identity, revision, phase, budget and arguments again under the
+controller lock, then invokes the same controller dispatcher used by the MCP bridge. This avoids
+starting a new MCP process on the prepared fast path. A plan is single-use; navigation or any lesson
+state change makes it stale. An old completion cannot overwrite a newer preparation. Failures leave
+lesson state unchanged and permit an explicit retry. No background retry loop runs.
+
+These additive localhost routes require the same Host/Origin checks as existing teacher routes:
+
+- `POST /api/story/prepare`: `{ "session_id": "<current UUID>", "revision": 1 }` returns
+  `{ "preparation_id": "<opaque UUID>", "revision": 1, "status": "ready" }` after preparation.
+  Repeating a ready request returns the same handle; an in-flight duplicate returns an error.
+- `POST /api/story/apply-prepared`: `{ "session_id": "<current UUID>", "revision": 1,
+  "preparation_id": "<opaque UUID>" }` returns the normal `state` wrapper and preparation/apply
+  diagnostics. The client cannot provide or replace the cached plan. Stale or consumed handles fail.
+
+No cloud contract or MCP tool signature changes. Old clients can keep using `/api/story/orchestrate`.
+Restart the local server and reload the reader to use the new routes. The cache is ephemeral and holds
+at most one entry per controller session (the existing controller caps sessions at 100). Speculative
+work already running may finish after navigation, but cannot change the lesson or become usable.
+
+There is no ElevenLabs narration adapter in this branch yet. Passage-open is the implemented trigger,
+which overlaps reading now and can overlap recorded narration when playback is connected. A separate
+book-audio job should generate passage-aligned audio and a versioned playback manifest. Store audio as
+files/object storage and, if needed, track manifest metadata in the lakehouse; do not query it between
+spoken passages. That job and speech-audio pre-generation are not implemented by this change.
+
+One local synthetic live test measured **3,912 ms** for preparation and **0.47 ms** for the later HTTP
+apply request (**0.05 ms** inside the dispatcher). Preparation left the controller state exactly unchanged.
+These are single-run localhost timings, excluding browser rendering, speech, hardware and human review.
+The preparation delay is hidden only if it finishes before the interaction is requested.
+
 ### Latency diagnostics
 
 The local response's existing `orchestrator` diagnostics now include `timings_ms` and
@@ -119,7 +162,7 @@ at the bridge. One live-model decision took **4,088 ms**, including **3,346 ms**
 observations on this machine, not production percentiles or a latency guarantee. Browser rendering,
 speech and hardware completion are excluded. No learner records were uploaded in these measurements.
 
-The current implementation starts the orchestrator and MCP processes for every decision; even the
+The direct decision path and background preparation start the orchestrator and MCP processes; even the
 rule path pays that startup cost. Keeping MCP alive would be a later measured optimization. The
 existing 18-second model read timeout and 35-second subprocess limit remain failure ceilings, not
 responsiveness targets. The model call is the largest measured delay; do not put it on every low-level
@@ -151,8 +194,9 @@ The MCP tests start an ephemeral localhost viewer and use an injected determinis
 exercise the actual SDK handshake, discovery and tool execution. They test stale navigation and forbidden
 teacher actions without calling a model. A separate manual browser run verifies live-model integration.
 
-The current checks cover 10 controller/selection tests and 7 real-stdio MCP tests, including
-context minimization, rule bypass, stale navigation, invalid arguments and model failure.
+The current checks cover 5 browser-preparation tests, 15 controller/selection/preparation tests, and
+9 MCP/HTTP integration tests, including context minimization, rule bypass, stale navigation,
+invalid arguments, model failure, no effects during preparation, cache reuse and single-use apply.
 Earlier live verification: A live browser run at the
 Peter Rabbit vegetables spread returned an orchestrator-selected `propose_activity` for `l`;
 teacher approval produced the deterministic dots 1, 2, 3 preview while physical readiness remained false.

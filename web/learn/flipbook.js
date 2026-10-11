@@ -1,4 +1,4 @@
-import { mountStoryCoach } from './story-coach.js?v=story-mcp-3';
+import { mountStoryCoach } from './story-coach.js?v=story-prepare-1';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
   const root = new DOMParser().parseFromString(html, 'text/html').body;

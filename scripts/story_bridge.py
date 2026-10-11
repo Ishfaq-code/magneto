@@ -10,8 +10,10 @@ from time import perf_counter
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from story_mode.controller import Controller, StoryError
+from story_mode.preparation import Preparation
 
 controller=Controller()
+preparations=Preparation(controller)
 MCP_KEY=secrets.token_urlsafe(32)
 MODEL_TOOLS={'propose_activity','recommend_continue','prepare_braille','speak_prompt','give_hint','submit_response'}
 TEACHER_ACTIONS={'set_context','approve_activity','prepare_braille','confirm_tactile','speak_prompt','give_hint','submit_response','record_observation','resume_story'}
@@ -39,6 +41,12 @@ def handle(handler):
         path=handler.path
         if path=='/api/story/session':
             result=controller.create()
+        elif path=='/api/story/prepare':
+            result=prepare(body,handler.server.server_port)
+        elif path=='/api/story/apply-prepared':
+            started=perf_counter()
+            result=preparations.apply(body['session_id'],body['revision'],body['preparation_id'])
+            result['orchestrator']['apply_ms']=round((perf_counter()-started)*1000,2)
         elif path=='/api/story/orchestrate':
             result=orchestrate(body,handler.server.server_port)
         elif path in ('/api/story/action','/api/story/mcp'):
@@ -60,7 +68,20 @@ def handle(handler):
     return True
 
 
-def orchestrate(request,port):
+def prepare(request, port):
+    sid=request['session_id']
+    ticket, needed=preparations.begin(sid, request['revision'])
+    if needed:
+        try:
+            result=orchestrate(request, port, prepare_only=True)
+            ticket=preparations.finish(sid, ticket, result['plan'], result['orchestrator'])
+        except Exception:
+            preparations.fail(sid, ticket)
+            raise
+    return {key:ticket[key] for key in ('preparation_id','revision','status')}
+
+
+def orchestrate(request,port, *, prepare_only=False):
     state=controller.get(request['session_id'])
     if request['revision']!=state['revision'] or state['phase'] not in ('reading','proposed','continue_proposed'):
         raise StoryError('Refresh context before requesting another decision.')
@@ -69,7 +90,7 @@ def orchestrate(request,port):
     if not python.exists():raise StoryError('Install story_mode/requirements.txt in .venv-story first.')
     started=perf_counter()
     result=subprocess.run([str(python),str(ROOT/'story_mode/orchestrator.py')],
-        input=json.dumps({'session_id':state['session_id'],'revision':state['revision']}),
+        input=json.dumps({'session_id':state['session_id'],'revision':state['revision'],'prepare_only':prepare_only}),
         text=True,capture_output=True,timeout=35,
         env={**os.environ,'MAGNETO_STORY_URL':f'http://127.0.0.1:{port}','MAGNETO_STORY_KEY':MCP_KEY})
     if result.returncode:raise StoryError('The model or MCP connection failed. No fallback teaching decision was substituted.')

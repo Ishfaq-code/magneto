@@ -75,10 +75,11 @@ async def run(request, choose=completion):
             timings['selection_ms'] = round((perf_counter()-selection_started)*1000, 2)
             execution_started = perf_counter()
             # The controller atomically checks revision again when applying the call.
-            result=unpack(await client.call_tool(plan['tool'],plan['arguments']))
+            preparing = request.get('prepare_only', False)
+            result = None if preparing else unpack(await client.call_tool(plan['tool'],plan['arguments']))
             timings['mcp_apply_ms'] = round((perf_counter()-execution_started)*1000, 2)
-            response = {'state':result,'orchestrator':{'mode':mode,'transport':'MCP stdio',
-                'tools_discovered':[t.name for t in tools], 'tool_called':plan['tool'],
+            response = {('plan' if preparing else 'state'): (plan if preparing else result),'orchestrator':{'mode':mode,'transport':'MCP stdio',
+                'tools_discovered':[t.name for t in tools], 'tool_called':None if preparing else plan['tool'], 'tool_selected':plan['tool'],
                 'timings_ms':timings, 'selection_payload_bytes':len(payload.encode())}}
     timings['total_ms'] = round((perf_counter()-started)*1000, 2)
     return response
