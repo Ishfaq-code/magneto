@@ -15,6 +15,7 @@ def decision_context(state):
     context = {key: deepcopy(state[key]) for key in (
         'session_id', 'revision', 'phase', 'opportunity', 'policy', 'activities_started')}
     context['observations'] = deepcopy(observations[-MAX_RECENT_OBSERVATIONS:])
+    context['review_candidates'] = deepcopy([r for r in state.get('review_candidates',[]) if r['target'] in targets][:4])
     context['observations_omitted'] = len(observations) - len(context['observations'])
     return context
 

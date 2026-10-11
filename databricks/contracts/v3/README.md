@@ -31,7 +31,7 @@ Profiles retain the v2 profile contract. Local saved demo sessions without a pro
 
 The outbox keeps records until a matching acknowledgement arrives. Databricks returns IDs only after a successful SQL write and readback; pending, failed, canceled and timed-out statements produce a retryable service error. An identical retry is acknowledged; reusing an ID with different content is rejected. This is single-app serialized ingestion, not a claim of database-enforced UUID uniqueness across independent writers.
 
-Confirmed preferences remain profile data. Personal Intelligence summaries, teacher correction workflows, and reading history into the planner are future work. The existing v1 director decision and snapshot are unchanged.
+Confirmed preferences remain profile data. Browser-local Peter Rabbit practice summaries now influence the planner; cloud readback and teacher correction workflows remain future work. The existing v1 director decision and snapshot are unchanged.
 
 ## Enablement and analysis
 
@@ -41,8 +41,8 @@ the deployed app's identity needs access to the learning tables. On startup, con
 creates missing v2/v3 tables. No deployment, grants, table creation or uploads occur in local checks.
 
 Run npm run check:learning, npm run check:contracts, and the existing reasoning/story checks.
-Only the connected Caterpillar demo produces v3 uploads in this change. The rabbit batch is a validated
-example; the separate Peter Rabbit coach and Orin harness are not wired to durable memory yet.
+The connected Caterpillar demo and Peter Rabbit coach produce opt-in v3 uploads. The rabbit batch
+is a synthetic validated example; the Orin harness remains separate.
 
 Useful analysis starts with counts by catalog target/task, support and confirmation, across sessions.
 Join immutable activity references to the catalog rather than parsing their text. Keep attempted
@@ -50,3 +50,16 @@ recognition separate from instruction and unconfirmed responses. Do not compare 
 interpret a within-session improvement as proof that a hint caused learning. Each attempt ID occurs
 once in analysis; idempotent ingestion is essential. The opaque profile ID is a routing identity,
 not independent authentication; the endpoint remains protected by Databricks App authentication.
+
+## Peter Rabbit interaction producer
+
+The local Peter Rabbit coach now emits v3 attempts for educator-confirmed independent/assisted
+completion when uploads are enabled. Existing references retain their meanings; new immutable
+references cover introduce/identify/match across all authored checkpoint targets. `try_later`
+is not an incorrect attempt and stays out of telemetry. Assisted completion without a recorded
+hint uses unknown support. Introduction records remain distinguishable by catalog task and must
+not be counted as recognition mastery. Original observation IDs and UTC timestamps are retained.
+
+Deploy the regenerated consumer catalog before enabling new references in a cloud environment.
+The wire schema is unchanged. Personal Intelligence currently retains bounded browser-local
+story history for review scheduling; reading lakehouse history into the planner is not implemented.

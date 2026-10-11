@@ -26,6 +26,14 @@
       "result": "correct",
       "support": "none",
       "assessment": "teacher_confirmed"
+    },
+    {
+      "attempt_id": "10000000-0000-4000-8000-000000000099",
+      "observed_at": "2026-10-11T12:10:00Z",
+      "activity_ref": "peter-rabbit/gate/match-g@1",
+      "result": "correct",
+      "support": "unknown",
+      "assessment": "teacher_confirmed"
     }
   ]
 }

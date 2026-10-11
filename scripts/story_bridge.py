@@ -44,7 +44,7 @@ def handle(handler):
         if not isinstance(body,dict):raise StoryError('Expected object.')
         path=handler.path
         if path=='/api/story/session':
-            result=controller.create()
+            result=controller.create(body.get('history',[]))
         elif path=='/api/story/lookahead':
             ticket, needed=lookahead.begin(body['session_id'],body['revision'],body['target'])
             if needed:

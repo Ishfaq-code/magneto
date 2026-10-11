@@ -15,6 +15,7 @@ def project(state, target):
 
 def evidence(state):
     return deepcopy({**{k: state[k] for k in ('observations', 'activities_started', 'policy')},
+                     'learner_history':state.get('learner_history',[]), 'review_candidates':state.get('review_candidates',[]),
                      'interaction_revision':state.get('interaction_revision',0)})
 
 

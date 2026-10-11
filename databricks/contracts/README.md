@@ -48,8 +48,8 @@ Both localhost and cloud use the same strict validator. Never count unknown supp
 independent success or convert legacy correct responses into mastery.
 
 Read [v3 migration notes](v3/README.md) before changing either endpoint. Fixtures, including the
-rabbit session, are synthetic. The current browser producer is the connected Caterpillar demo;
-Peter Rabbit teacher-coach uploads and Personal Intelligence readback are not connected yet.
+rabbit session, are synthetic. The connected Caterpillar demo and Peter Rabbit teacher coach produce opt-in attempts.
+Peter Rabbit uses browser-local practice history for review scheduling; lakehouse readback is not connected.
 
 ## Storage scope
 

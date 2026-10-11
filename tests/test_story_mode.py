@@ -109,6 +109,40 @@ class PreparationTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.finish(ticket)
         self.assertEqual(self.c.get(self.s['session_id']),self.s)
 
+class ReviewTests(unittest.TestCase):
+    def row(self,outcome='with_help',activity='identify',day=1):
+        from uuid import uuid4
+        return dict(id=str(uuid4()),target='r',activity=activity,outcome=outcome,source='teacher',
+                    hint_used=outcome=='with_help',observed_at=f'2026-01-{day:02d}T12:00:00+00:00',passage_id='rabbit')
+    def test_due_schedule_and_task_separation(self):
+        from story_mode.review import summarize
+        from datetime import datetime,timezone
+        rows=[self.row(),self.row('independent','match')]
+        summary=summarize(rows,datetime(2026,1,2,13,tzinfo=timezone.utc))
+        self.assertEqual(len(summary),2);self.assertTrue(all(r['due'] for r in summary))
+        self.assertTrue(next(r for r in summary if r['activity']=='identify')['needs_support'])
+        self.assertFalse(next(r for r in summary if r['activity']=='match')['needs_support'])
+    def test_skips_dedupe_and_introduction_are_not_mastery(self):
+        from story_mode.review import summarize
+        row=self.row('independent','introduce')
+        summary=summarize([row,row,self.row('try_later')])
+        self.assertEqual(len(summary),1);self.assertEqual(summary[0]['observations'],1)
+        self.assertIn('recognition not established',summary[0]['reason'])
+    def test_repeated_independent_results_space_reviews(self):
+        from story_mode.review import summarize
+        summary=summarize([self.row('independent',day=1),self.row('independent',day=2)])
+        self.assertTrue(summary[0]['review_due_at'].startswith('2026-01-05'))
+    def test_history_load_filters_to_current_checkpoint_and_survives_new_session(self):
+        c=Controller();s=c.create([self.row()]);s=c.call(s['session_id'],0,'set_context',{'passage_id':'gate'},actor='teacher')
+        self.assertEqual(decision_context(s)['review_candidates'],[])
+        s=c.call(s['session_id'],s['revision'],'set_context',{'passage_id':'rabbit'},actor='teacher')
+        self.assertEqual(decision_context(s)['review_candidates'][0]['target'],'r')
+        self.assertEqual(s['observations'],[])
+    def test_bad_history_rejected(self):
+        row=self.row();row['outcome']='independent'
+        with self.assertRaises(ValueError):Controller().create([row])
+        with self.assertRaises(ValueError):Controller().create([self.row()]*41)
+
 class CheckpointMapTests(unittest.TestCase):
     def test_authored_anchors_match_bundled_edition(self):
         from story_mode.controller import CHECKPOINT_MAP, CATALOG

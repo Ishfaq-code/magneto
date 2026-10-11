@@ -121,7 +121,7 @@ def test_successful_retry_is_one_record_per_attempt_and_matching_ack():
     service, sql = store()
     first = service.ingest_attempts(batch())
     assert first == service.ingest_attempts(batch())
-    assert len(sql.records) == 3
+    assert len(sql.records) == len(batch()['attempts'])
     assert first['attempt_ids'] == [a['attempt_id'] for a in EXAMPLE['attempts']]
     assert all(r['wait_timeout'] == '5s' and r['on_wait_timeout'].value == 'CANCEL' for r in sql.calls)
     assert all(EXAMPLE['profile_id'] not in r['statement'] for r in sql.calls)
@@ -148,7 +148,7 @@ def test_same_id_different_content_is_rejected():
     altered['attempts'][0]['support'] = 'none'
     with pytest.raises(RecordConflict):
         service.ingest_attempts(altered)
-    assert len(sql.records) == 3
+    assert len(sql.records) == len(batch()['attempts'])
 
 
 def test_missing_and_revoked_profiles_block_writes():
@@ -223,4 +223,4 @@ def test_valid_api_batch_round_trip(monkeypatch):
     monkeypatch.setattr(main.app.state, 'learning_store', service, raising=False)
     response = TestClient(main.app).post('/api/learning/attempts', json=batch(), headers={'x-profile-key': EXAMPLE['profile_id']})
     assert response.status_code == 200
-    assert len(response.json()['attempt_ids']) == 3
+    assert len(response.json()['attempt_ids']) == len(batch()['attempts'])

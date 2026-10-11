@@ -86,3 +86,32 @@ not gain this checkpoint map. Narration matching and saved reading positions are
 Migration: existing checkpoint IDs `rabbit`, `gate`, `lettuce` and narration page IDs are retained.
 No deployed Databricks interface changes. Story copy edits no longer alter checkpoint selection.
 The pause boundary is authored guidance; educator initiation still controls starting an exercise.
+
+## Personal Intelligence and review policy
+
+The story reader retains at most 40 confirmed Peter Rabbit observations per existing browser
+profile in `magneto-story-practice-v1:<profile UUID>`. On opening a book it sends this bounded
+history to the local session endpoint; the server validates fields, IDs, targets, dates and
+support consistency. It does not query the lakehouse or migrate old unconfirmed/undated history.
+Accepted outcomes are saved before the next decision, including when a late response arrives
+after page navigation. Browser storage failure is shown in the practice-history panel.
+
+The deterministic policy groups target AND activity, deduplicates observations by ID, and shows
+up to five recent observations per group. Try-later is excluded from difficulty evidence.
+Introductions count as exposure, not recognition. After assisted practice or an introduction,
+review is suggested one day later. Consecutive independent recognition/matching observations
+use intervals of 1, 3, 7, then 14 days. These are initial heuristics, not validated optimal intervals
+or mastery thresholds. Review dates and evidence are visible under Personal Intelligence in
+the educator panel. Only four relevant candidates at most reach the model at each checkpoint.
+Due reviews and recent assistance influence selection; continuing the story remains allowed.
+Updated evidence invalidates speculative plans. Live decisions use local cached evidence.
+
+With existing profile upload consent enabled, independent/assisted completed outcomes also enter
+the v3 attempt outbox, using the observation ID and original observation timestamp. Independent
+maps to correct/none; assisted maps to correct/hint when known, otherwise correct/unknown.
+Try-later and unconfirmed transcripts do not upload as attempts. No retrospective upload of local
+history is performed on opt-in. The immutable activity catalog now covers every supported
+checkpoint/target/activity combination without changing existing references or payload schemas.
+The cloud consumer needs the regenerated catalog deployed before new references are accepted;
+failed acknowledgements keep attempts queued. Deployment and cloud-history readback are not
+part of this local layer. No uploads are enabled automatically.

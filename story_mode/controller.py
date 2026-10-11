@@ -2,6 +2,8 @@
 from copy import deepcopy
 from threading import RLock
 from uuid import uuid4
+from datetime import datetime, timezone
+from story_mode.review import validate_history, summarize
 
 import json
 from pathlib import Path
@@ -19,8 +21,9 @@ class Controller:
         self.sessions = {}
         self.lock = RLock()
 
-    def create(self):
+    def create(self, history=None):
         with self.lock:
+            history=deepcopy(validate_history([] if history is None else history,{t for c in CATALOG.values() for t in c['targets']}))
             # Ephemeral anonymous session; never load a child's identity or browser shelf.
             if len(self.sessions) >= 100:
                 raise StoryError('Too many sessions. Restart the local server to clear expired sessions.')
@@ -29,13 +32,14 @@ class Controller:
                 'phase':'reading', 'proposal':None, 'response':None, 'observations':[], 'trace':[],
                 'device':{'connected':False, 'ready':False, 'mode':'teacher-supplied tactile Braille'},
                 'policy':{'teacher_approval':True, 'max_activities':6, 'braille_code':'UEB', 'translation':'uncontracted lowercase letters'},
-                'activities_started':0, 'interaction_revision':0}
+                'activities_started':0, 'interaction_revision':0, 'learner_history':history}
             return self.get(sid)
 
     def get(self, sid):
         with self.lock:
             if sid not in self.sessions: raise StoryError('Session expired. Reopen the teacher panel.')
             state = deepcopy(self.sessions[sid])
+            state['review_candidates']=summarize(state.get('learner_history',[])+state['observations'])
             state['opportunity'] = deepcopy(CATALOG.get(state['passage_id']))
             return state
 
@@ -96,7 +100,7 @@ class Controller:
                 if outcome not in ('independent','with_help','try_later'): raise StoryError('Invalid observation.')
                 if outcome == 'independent' and s.get('hint_used'): raise StoryError('A hint was used. Record with help or try later.')
                 s['observations'].append({'id':str(uuid4()), 'passage_id':s['passage_id'], 'target':s['proposal']['target'],
-                    'activity':s['proposal']['activity'], 'outcome':outcome, 'source':'teacher', 'hint_used':s.get('hint_used',False)})
+                    'observed_at':datetime.now(timezone.utc).isoformat(), 'activity':s['proposal']['activity'], 'outcome':outcome, 'source':'teacher', 'hint_used':s.get('hint_used',False)})
                 s['phase']='complete'
             elif name == 'resume_story':
                 teacher();s.update(phase='reading',proposal=None,response=None)
