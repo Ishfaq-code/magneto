@@ -1,6 +1,8 @@
+import time
+
 from cane_vision.cane import Cane, select_touched
-from cane_vision.detector import Detection
-from cane_vision.pipeline import TouchTracker
+from cane_vision.detector import Detection, pick_device
+from cane_vision.pipeline import LatestFrame, TouchTracker, is_live
 
 W, H = 1000, 1000
 CANE = Cane(tip_x=0.5, tip_y=0.8, reach=0.05)  # tip at (500, 800), reach ~70 px
@@ -85,3 +87,45 @@ def test_per_class_min_confidence():
     assert not labels.allowed("mailbox", 0.37)
     assert labels.allowed("door", 0.26)
     assert not labels.allowed("cat", 0.99)
+
+
+class FakeCamera:
+    """Produces numbered frames as fast as it's read, then runs out."""
+
+    def __init__(self, count):
+        self.count, self.i, self.released = count, 0, False
+
+    def read(self):
+        if self.i >= self.count:
+            return False, None
+        self.i += 1
+        time.sleep(0.001)
+        return True, self.i
+
+    def release(self):
+        self.released = True
+
+
+def test_latest_frame_skips_stale_frames():
+    camera = FakeCamera(200)
+    frames = LatestFrame(camera)
+    seen = []
+    while True:
+        ok, frame = frames.read()
+        if not ok:
+            break
+        seen.append(frame)
+        time.sleep(0.02)  # a slow detector
+    frames.release()
+    assert seen == sorted(seen) and len(seen) < 100 and camera.released
+    assert seen[-1] >= 190  # still caught up with the newest frames
+
+
+def test_live_sources():
+    assert is_live(0) and is_live("rtsp://cam/stream")
+    assert not is_live("walk.mp4")
+
+
+def test_pick_device():
+    assert pick_device("cpu") == "cpu"
+    assert pick_device("auto") in {"cuda:0", "mps", "cpu"}

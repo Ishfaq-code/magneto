@@ -6,6 +6,20 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+def pick_device(device: str | None = "auto") -> str:
+    """"auto" picks the fastest device available: an NVIDIA GPU (CUDA, which
+    includes the Jetson), then the Apple GPU (MPS), then the CPU."""
+    if device not in (None, "auto"):
+        return str(device)
+    import torch
+
+    if torch.cuda.is_available():
+        return "cuda:0"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 @dataclass(frozen=True)
 class Detection:
     label: str
@@ -35,7 +49,7 @@ class Detector:
         model: str = "yolov8s-worldv2.pt",
         confidence: float = 0.25,
         image_size: int = 640,
-        device: str | None = None,
+        device: str | None = "auto",
         vocabulary: list[str] | None = None,
     ):
         from ultralytics import YOLO
@@ -47,7 +61,8 @@ class Detector:
             self.model.set_classes(vocabulary)
         self.confidence = confidence
         self.image_size = image_size
-        self.device = device
+        self.device = pick_device(device)
+        self.half = self.device.startswith("cuda")  # FP16 is free speed on NVIDIA GPUs
 
     @property
     def class_names(self) -> list[str]:
@@ -60,6 +75,7 @@ class Detector:
             conf=self.confidence,
             imgsz=self.image_size,
             device=self.device,
+            half=self.half,
             verbose=False,
         )[0]
         names = result.names
