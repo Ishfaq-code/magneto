@@ -28,7 +28,7 @@ class Controller:
                 'phase':'reading', 'proposal':None, 'response':None, 'observations':[], 'trace':[],
                 'device':{'connected':False, 'ready':False, 'mode':'teacher-supplied tactile Braille'},
                 'policy':{'teacher_approval':True, 'max_activities':6, 'braille_code':'UEB', 'translation':'uncontracted lowercase letters'},
-                'activities_started':0}
+                'activities_started':0, 'interaction_revision':0}
             return self.get(sid)
 
     def get(self, sid):
@@ -102,6 +102,7 @@ class Controller:
             else: raise StoryError('Unknown Story Mode tool.')
             if name in ('set_context','resume_story','propose_activity'):
                 for field in ('braille','speech','hint_used','tactile_source'):s.pop(field,None)
+            if name != 'set_context': s['interaction_revision'] = s.get('interaction_revision', 0) + 1
             s['revision']+=1
             s['trace']=(s['trace']+[{'tool':name,'actor':actor,'revision':s['revision']}])[-40:]
             self.sessions[sid]=s

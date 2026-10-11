@@ -109,4 +109,51 @@ class PreparationTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.finish(ticket)
         self.assertEqual(self.c.get(self.s['session_id']),self.s)
 
+class LookaheadTests(unittest.TestCase):
+    def setUp(self):
+        from story_mode.lookahead import Lookahead
+        self.c=Controller();self.s=self.c.create();self.p=Lookahead(self.c)
+        self.ticket,_=self.p.begin(self.s['session_id'],0,'rabbit')
+        self.plan={'tool':'propose_activity','arguments':{'session_id':self.s['session_id'],'revision':0,
+            'activity':'introduce','target':'r','prompt':'Help Peter find r.','hint':'Feel the dots.','reason':'A story connection.'}}
+    def move(self,target):
+        s=self.c.get(self.s['session_id'])
+        return self.c.call(s['session_id'],s['revision'],'set_context',{'passage_id':target},actor='teacher')
+    def test_projection_does_not_move_live_page_and_rebases_on_arrival(self):
+        self.assertEqual(self.c.get(self.s['session_id']),self.s)
+        self.p.finish(self.s['session_id'],self.ticket,self.plan,{'prompt':'cached'})
+        s=self.move('rabbit')
+        result=self.p.apply(s['session_id'],s['revision'],self.ticket['preparation_id'])
+        self.assertEqual(result['state']['proposal']['target'],'r')
+        self.assertEqual(result['interaction_audio'],{'prompt':'cached'})
+        with self.assertRaises(StoryError):self.p.apply(s['session_id'],s['revision'],self.ticket['preparation_id'])
+    def test_wrong_page_and_stale_revision_rejected(self):
+        self.p.finish(self.s['session_id'],self.ticket,self.plan,{})
+        s=self.move('gate')
+        with self.assertRaises(StoryError):self.p.apply(s['session_id'],s['revision'],self.ticket['preparation_id'])
+        s=self.move('rabbit')
+        with self.assertRaises(StoryError):self.p.apply(s['session_id'],0,self.ticket['preparation_id'])
+    def test_changed_evidence_rejects_prepared_plan(self):
+        self.p.finish(self.s['session_id'],self.ticket,self.plan,{})
+        s=self.move('rabbit')
+        self.c.sessions[s['session_id']]['activities_started']+=1
+        with self.assertRaises(StoryError):self.p.apply(s['session_id'],s['revision'],self.ticket['preparation_id'])
+    def test_navigation_during_generation_allowed_but_new_observation_invalidates(self):
+        self.move('rabbit')
+        self.p.finish(self.s['session_id'],self.ticket,self.plan,{})
+        self.assertEqual(self.p.entries[self.s['session_id']]['status'],'ready')
+    def test_intervention_invalidates_inflight_even_after_resuming(self):
+        self.move('rabbit')
+        state=self.c.get(self.s['session_id'])
+        state=self.c.call(state['session_id'],state['revision'],'resume_story',actor='teacher')
+        with self.assertRaises(StoryError):self.p.finish(state['session_id'],self.ticket,self.plan,{})
+    def test_one_inflight_and_failure_retry(self):
+        with self.assertRaises(StoryError):self.p.begin(self.s['session_id'],0,'gate')
+        self.p.fail(self.s['session_id'],self.ticket)
+        _,needed=self.p.begin(self.s['session_id'],0,'gate');self.assertTrue(needed)
+    def test_invalid_target_or_teacher_tool_rejected(self):
+        with self.assertRaises(StoryError):self.p.begin(self.s['session_id'],0,'invented')
+        self.plan['tool']='record_observation'
+        with self.assertRaises(ValueError):self.p.finish(self.s['session_id'],self.ticket,self.plan,{})
+
 if __name__=='__main__':unittest.main()

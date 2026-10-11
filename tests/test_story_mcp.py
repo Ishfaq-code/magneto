@@ -29,6 +29,16 @@ class ProtocolTests(unittest.TestCase):
     def tearDownClass(cls):cls.server.shutdown();cls.server.server_close();cls.thread.join()
     def setUp(self):
         self.s=controller.create();self.s=controller.call(self.s['session_id'],0,'set_context',{'passage_id':'rabbit'},actor='teacher')
+    def test_lookahead_projects_target_without_changing_live_context(self):
+        def fixture(messages):
+            context=json.loads(messages[-1]['content'])['context']
+            self.assertEqual(context['opportunity']['targets'],['g','gate'])
+            return json.dumps({'tool':'recommend_continue','arguments':{
+                'session_id':self.s['session_id'],'revision':self.s['revision'],'reason':'Synthetic lookahead.'}})
+        result=asyncio.run(run({**self.s,'prepare_only':True,'lookahead_target':'gate'},fixture))
+        self.assertEqual(result['plan']['tool'],'recommend_continue')
+        self.assertEqual(controller.get(self.s['session_id']),self.s)
+
     def test_model_selection_executes_through_mcp(self):
         def fixture(messages):
             data=json.loads(messages[-1]['content'])

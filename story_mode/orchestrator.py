@@ -11,6 +11,7 @@ from mcp.client.stdio import stdio_client
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from story_mode.lookahead import project
 from story_mode.selection import decision_context, allowed_tools, rule_plan, validate_plan
 SYSTEM='''You are the Magneto Story Mode orchestrator. Select exactly one available MCP tool.
 Use only the approved opportunity and teacher-confirmed observations in the supplied context.
@@ -22,6 +23,8 @@ For introduce you may name the target. For identify/match do not reveal the targ
 Adapt to the activity: matching requires teacher-supplied tactile choices. Hints may name the target.
 Respect the session activity limit; recommend_continue if reached. Consider only relevant target history.
 Only a bounded recent observation window is supplied; omitted history is unknown.
+Keep the child inside Peter Rabbit's adventure: address them warmly as the narrator, connect the
+prompt to the supplied story opportunity, and avoid classroom transitions or invented story events.
 Use short learner-facing speech and a separate one-sentence teacher-facing evidence summary in reason.
 The session_id and revision must match context. Return JSON {tool, arguments}. Never include hidden reasoning.
 No teacher-only action is available to you. No physical hardware or microphone is connected.'''
@@ -58,6 +61,9 @@ async def run(request, choose=completion):
             timings['mcp_setup_and_read_ms'] = round((perf_counter()-started)*1000, 2)
             if type(request['revision']) is not int or state['revision']!=request['revision']:
                 raise ValueError('Stale orchestration request')
+            if request.get('lookahead_target'):
+                if not request.get('prepare_only'): raise ValueError('Look-ahead cannot execute directly')
+                state = project(state, request['lookahead_target'])
             selection_started = perf_counter()
             context = decision_context(state)
             allowed = allowed_tools(context)

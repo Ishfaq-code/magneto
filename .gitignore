@@ -8,7 +8,7 @@ __pycache__/
 .venv-agent/
 .agentbricks/
 .databricks/
-.venv-story/
+.venv-story
 
 # Local generated narration; scripts remain versioned.
 web/learn/narration/

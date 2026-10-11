@@ -1,6 +1,6 @@
 import { createPageTurnSound } from './page-turn-sound.js';
 import { mountNarration } from './narration.js?v=autoplay-1';
-import { mountStoryCoach } from './story-coach.js?v=story-prepare-1';
+import { mountStoryCoach } from './story-coach.js?v=lookahead-2';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
   const root = new DOMParser().parseFromString(html, 'text/html').body;
@@ -33,8 +33,8 @@ export function mountFlipbook({main, book, content, save, announce}) {
   let turning=false, disposed=false, animation=null, overlay=null, resizeFrame=0, generation=0;
   if (book.finished === undefined) book.finished = book.current === book.total;
   let legacyScroll = book.pageFraction === undefined ? (book.scroll || 0) : 0;
-  narration=mountNarration({player,bookId:book.id,onPlay:()=>stopPlaying(false)});
-  const coach=mountStoryCoach({player,enabled:book.bundled,pause:stopPlaying});
+  narration=mountNarration({player,bookId:book.id,onPlay:()=>{stopPlaying(false);coach.stopSpeech?.();}});
+  const coach=mountStoryCoach({player,enabled:book.bundled,pause:stopPlaying,onResume:()=>turn(1)});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function persist() {
     book.position=chapter;book.page=page;book.pageFraction=count>1?page/(count-1):0;
@@ -46,7 +46,12 @@ export function mountFlipbook({main, book, content, save, announce}) {
       illustration.innerHTML=spread?.image || '<span class="spread-no-art" aria-hidden="true">⠿</span>';
       text.innerHTML=spread?.html || '<p class="spread-caption"></p>';
       if(!spread?.html)text.querySelector('.spread-caption').textContent=content.chapters[chapter].title;
-      windowEl.scrollTop=0;paintedPage=page;coach.context(text.textContent);narration.context(text.textContent);
+      windowEl.scrollTop=0;paintedPage=page;const upcoming=[];
+      for(let c=chapter;c<content.chapters.length && upcoming.length<3;c++){
+        const pages=c===chapter?spreads:illustrationSpreads(content.chapters[c].html);
+        for(let p=c===chapter?page:0;p<pages.length && upcoming.length<3;p++)upcoming.push(new DOMParser().parseFromString(pages[p].html,'text/html').body.textContent);
+      }
+      coach.context(text.textContent,upcoming);narration.context(text.textContent);
     }
     previous.disabled=coach.isPaused() || (chapter===0 && page===0);
     next.disabled=coach.isPaused();

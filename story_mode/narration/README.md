@@ -119,7 +119,8 @@ npm run build:narration -- story_mode/narration/peter-rabbit-interactions.json
 The eight clips are cached separately under `web/learn/narration/peter-rabbit-interactions/`.
 The source reuses narration format 1.0; `match_text` values are reserved interaction keys,
 not book passage excerpts. A future interaction playback adapter should select by exact clip ID,
-not search story text. This pack is generated audio, not a connected MCP playback feature.
+not search story text. Accepted educator outcomes now play success/skip feedback through the browser adapter; see
+[the tool audit](../INTERACTION_AUDIT.md) for exact gates and remaining unconnected clips.
 
 | Clip ID | Intended trigger | Intended next state |
 | --- | --- | --- |
@@ -134,7 +135,7 @@ not search story text. This pack is generated audio, not a connected MCP playbac
 
 The controller currently accepts teacher outcomes independent, with_help and try_later; it does
 not yet have an incorrect-attempt event. Do not map try_later or an unconfirmed transcript to retry.
-These triggers are the intended playback mapping, not new accepted controller actions. The model
+The audit distinguishes connected triggers from reserved clips; these are not new controller actions. The model
 proposes the exercise; deterministic code checks phase, session revision and confirmed outcomes.
-The existing teacher-controlled resume rule remains unchanged. Look-ahead exercise generation,
-live generated prompts and automatic feedback playback are separate integration work.
+The educator confirms the outcome; feedback then resumes the story automatically. Two-page look-ahead now generates cached prompt/hint audio; accepted educator observations play
+feedback. General external MCP event playback remains unconnected. The local educator flow now resumes automatically after feedback.

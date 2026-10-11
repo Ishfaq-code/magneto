@@ -202,3 +202,8 @@ Earlier live verification: A live browser run at the
 Peter Rabbit vegetables spread returned an orchestrator-selected `propose_activity` for `l`;
 teacher approval produced the deterministic dots 1, 2, 3 preview while physical readiness remained false.
 No child response or physical tactile-material confirmation was fabricated in that browser run.
+
+## Interaction audio and two-page look-ahead
+
+See [the tool audit and local endpoint contract](INTERACTION_AUDIT.md) for each audio trigger,
+state gate, speculative preparation, invalidation and remaining integration limits.

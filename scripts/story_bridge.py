@@ -11,9 +11,13 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from story_mode.controller import Controller, StoryError
 from story_mode.preparation import Preparation
+from story_mode.lookahead import Lookahead
+from story_mode.interaction_audio import prepare_audio
+from threading import Thread
 
 controller=Controller()
 preparations=Preparation(controller)
+lookahead=Lookahead(controller)
 MCP_KEY=secrets.token_urlsafe(32)
 MODEL_TOOLS={'propose_activity','recommend_continue','prepare_braille','speak_prompt','give_hint','submit_response'}
 TEACHER_ACTIONS={'set_context','approve_activity','prepare_braille','confirm_tactile','speak_prompt','give_hint','submit_response','record_observation','resume_story'}
@@ -41,6 +45,28 @@ def handle(handler):
         path=handler.path
         if path=='/api/story/session':
             result=controller.create()
+        elif path=='/api/story/lookahead':
+            ticket, needed=lookahead.begin(body['session_id'],body['revision'],body['target'])
+            if needed:
+                def work():
+                    try:
+                        request={'session_id':body['session_id'],'revision':body['revision'],'lookahead_target':body['target']}
+                        result=orchestrate(request,handler.server.server_port,prepare_only=True)
+                        try: audio=prepare_audio(result['plan'])
+                        except Exception: audio={}  # Keep the reviewed text usable if synthesis is unavailable.
+                        lookahead.finish(body['session_id'],ticket,result['plan'],audio)
+                    except Exception: lookahead.fail(body['session_id'],ticket)
+                Thread(target=work,daemon=True).start()
+            result={k:ticket[k] for k in ('preparation_id','target','status')}
+            if ticket.get('plan'):result['preview']=ticket['plan']
+        elif path=='/api/story/lookahead-status':
+            with controller.lock:
+                ticket=lookahead.entries.get(body['session_id'])
+                if not ticket or ticket['preparation_id']!=body['preparation_id']:raise StoryError('Look-ahead expired or failed.')
+                result={k:ticket[k] for k in ('preparation_id','target','status')}
+                if ticket.get('plan'):result['preview']=ticket['plan']
+        elif path=='/api/story/apply-lookahead':
+            result=lookahead.apply(body['session_id'],body['revision'],body['preparation_id'])
         elif path=='/api/story/prepare':
             result=prepare(body,handler.server.server_port)
         elif path=='/api/story/apply-prepared':
@@ -85,12 +111,12 @@ def orchestrate(request,port, *, prepare_only=False):
     state=controller.get(request['session_id'])
     if request['revision']!=state['revision'] or state['phase'] not in ('reading','proposed','continue_proposed'):
         raise StoryError('Refresh context before requesting another decision.')
-    if state['opportunity'] is None:raise StoryError('No approved teaching opportunity on this spread.')
+    if state['opportunity'] is None and not (prepare_only and request.get('lookahead_target')):raise StoryError('No approved teaching opportunity on this spread.')
     python=ROOT/'.venv-story/bin/python'
     if not python.exists():raise StoryError('Install story_mode/requirements.txt in .venv-story first.')
     started=perf_counter()
     result=subprocess.run([str(python),str(ROOT/'story_mode/orchestrator.py')],
-        input=json.dumps({'session_id':state['session_id'],'revision':state['revision'],'prepare_only':prepare_only}),
+        input=json.dumps({'session_id':state['session_id'],'revision':state['revision'],'prepare_only':prepare_only, **({'lookahead_target':request['lookahead_target']} if request.get('lookahead_target') else {})}),
         text=True,capture_output=True,timeout=35,
         env={**os.environ,'MAGNETO_STORY_URL':f'http://127.0.0.1:{port}','MAGNETO_STORY_KEY':MCP_KEY})
     if result.returncode:raise StoryError('The model or MCP connection failed. No fallback teaching decision was substituted.')
