@@ -3,6 +3,7 @@ from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from story_mode.controller import Controller, StoryError
+from story_mode.selection import decision_context, allowed_tools
 
 class StoryTests(unittest.TestCase):
     def setUp(self):
@@ -46,6 +47,24 @@ class StoryTests(unittest.TestCase):
         self.call('set_context',{'passage_id':'lettuce'},'teacher')
         self.assertEqual(self.s['phase'],'reading');self.assertIsNone(self.s['proposal']);self.assertNotIn('speech',self.s)
         self.assertEqual(self.s['observations'][0]['outcome'],'with_help')
+    def test_selection_context_excludes_unrelated_and_private_state(self):
+        state=self.c.sessions[self.s['session_id']]
+        state['observations']=[{'id':str(i),'target':'r','source':'teacher',
+            'outcome':'with_help','activity':'identify','hint_used':True,'passage_id':'rabbit'} for i in range(10)]
+        state['observations'] += [{'target':'g','source':'teacher'}, {'target':'r','source':'transcript'}]
+        state['response']={'text':'Private unconfirmed transcript'}
+        context=decision_context(self.c.get(self.s['session_id']))
+        self.assertEqual([o['id'] for o in context['observations']],['6','7','8','9'])
+        self.assertEqual(context['observations_omitted'],6)
+        self.assertNotIn('response',context)
+        self.assertNotIn('trace',context)
+        self.assertNotIn('device',context)
+        self.assertEqual(allowed_tools(context),{'propose_activity','recommend_continue'})
+
+    def test_selection_is_unavailable_during_an_activity(self):
+        self.start()
+        with self.assertRaises(ValueError):decision_context(self.s)
+
     def test_budget(self):
         self.c.sessions[self.s['session_id']]['activities_started']=6
         with self.assertRaises(StoryError):self.propose()

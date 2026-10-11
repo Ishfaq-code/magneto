@@ -5,6 +5,7 @@ from pathlib import Path
 import secrets
 import subprocess
 import sys
+from time import perf_counter
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -66,9 +67,12 @@ def orchestrate(request,port):
     if state['opportunity'] is None:raise StoryError('No approved teaching opportunity on this spread.')
     python=ROOT/'.venv-story/bin/python'
     if not python.exists():raise StoryError('Install story_mode/requirements.txt in .venv-story first.')
+    started=perf_counter()
     result=subprocess.run([str(python),str(ROOT/'story_mode/orchestrator.py')],
         input=json.dumps({'session_id':state['session_id'],'revision':state['revision']}),
         text=True,capture_output=True,timeout=35,
         env={**os.environ,'MAGNETO_STORY_URL':f'http://127.0.0.1:{port}','MAGNETO_STORY_KEY':MCP_KEY})
     if result.returncode:raise StoryError('The model or MCP connection failed. No fallback teaching decision was substituted.')
-    return json.loads(result.stdout)
+    response=json.loads(result.stdout)
+    response['orchestrator']['timings_ms']['bridge_total_ms']=round((perf_counter()-started)*1000,2)
+    return response

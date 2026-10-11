@@ -66,6 +66,33 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(Exception):asyncio.run(run(self.s,late))
         self.assertEqual(controller.get(self.s['session_id'])['passage_id'],'gate')
         self.assertIsNone(controller.get(self.s['session_id'])['proposal'])
+    def test_budget_skips_model_and_executes_real_mcp(self):
+        controller.sessions[self.s['session_id']]['activities_started']=6
+        def forbidden(messages):
+            raise AssertionError('Budget rule must not call the model')
+        result=asyncio.run(run(self.s,forbidden))
+        self.assertEqual(result['state']['phase'],'continue_proposed')
+        self.assertEqual(result['orchestrator']['mode'],'rule')
+        self.assertEqual(result['orchestrator']['tool_called'],'recommend_continue')
+        self.assertGreater(result['orchestrator']['timings_ms']['total_ms'],0)
+
+    def test_invalid_arguments_do_not_mutate_state(self):
+        def invalid(messages):
+            return json.dumps({'tool':'recommend_continue','arguments':{
+                'session_id':self.s['session_id'],'revision':self.s['revision'],
+                'reason':'Continue','unexpected':'discard me'}})
+        before=controller.get(self.s['session_id'])
+        with self.assertRaises(ExceptionGroup) as caught:asyncio.run(run(self.s,invalid))
+        self.assertIsNotNone(caught.exception.subgroup(ValueError))
+        self.assertEqual(controller.get(self.s['session_id']),before)
+
+    def test_model_failure_leaves_session_unchanged(self):
+        def timeout(messages):raise TimeoutError('Synthetic timeout')
+        before=controller.get(self.s['session_id'])
+        with self.assertRaises(ExceptionGroup) as caught:asyncio.run(run(self.s,timeout))
+        self.assertIsNotNone(caught.exception.subgroup(TimeoutError))
+        self.assertEqual(controller.get(self.s['session_id']),before)
+
     def test_model_cannot_select_teacher_tool(self):
         def invalid(messages):return json.dumps({'tool':'record_observation','arguments':{}})
         with self.assertRaises(Exception):asyncio.run(run(self.s,invalid))
