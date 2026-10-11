@@ -1,7 +1,7 @@
 import { preparePeterReading, PETER_READING_VERSION } from './peter-reading.js';
 import { DecisionSession } from './decision-session.js';
 import { peterActivities, bindPeterActivities } from './peter-activities.js';
-import { mountFlipbook } from './flipbook.js?v=peter-title-first-2';
+import { mountFlipbook } from './flipbook.js?v=reader-audio-1';
 import { importEbook, ebookStore } from './ebook.js';
 // Reading records are separate from learning progress and saved CAD designs.
 const key = 'magneto-stories-v1';

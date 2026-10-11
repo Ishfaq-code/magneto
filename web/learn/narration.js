@@ -13,7 +13,7 @@ export function mountNarration({player, bookId, onPlay}) {
   if (!/^[a-zA-Z0-9_-]{1,100}$/.test(bookId)) return {context(){}, pause(){}, dispose(){}};
   const area = document.createElement('div'); area.hidden = true; area.className = 'local-narration';
   const label = document.createElement('span'); label.textContent = 'Recorded narration';
-  const audio = document.createElement('audio'); audio.controls = true; audio.preload = 'none'; audio.setAttribute('aria-label', 'Read this passage');
+  const audio = document.createElement('audio'); audio.controls = true; audio.preload = 'auto'; audio.setAttribute('aria-label', 'Read this passage');
   area.append(label, audio); player.querySelector('.player-controls').prepend(area);
   let disposed = false, manifest = null, currentText = '', source = '';
   function context(text) {
@@ -24,6 +24,9 @@ export function mountNarration({player, bookId, onPlay}) {
     audio.pause(); label.textContent = 'Recorded narration'; source = next; area.hidden = !next;
     if (next) audio.src = next; else audio.removeAttribute('src');
     audio.load();
+    if (next) audio.play().catch(() => {
+      if (!disposed && source === next && audio.paused) label.textContent = 'Press play to hear this page';
+    });
   }
   audio.onplay = () => { onPlay(); window.speechSynthesis?.cancel(); };
   audio.onerror = () => { label.textContent = 'Narration unavailable. Continue reading or rebuild this audio.'; };

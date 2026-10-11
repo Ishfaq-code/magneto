@@ -1,4 +1,5 @@
-import { mountNarration } from './narration.js';
+import { createPageTurnSound } from './page-turn-sound.js';
+import { mountNarration } from './narration.js?v=autoplay-1';
 import { mountStoryCoach } from './story-coach.js?v=story-prepare-1';
 // Pair each illustration with the following passage in the EPUB reading order.
 function illustrationSpreads(html) {
@@ -25,6 +26,7 @@ export function mountFlipbook({main, book, content, save, announce}) {
   let spreads=[], paintedPage=-1;
   reader.classList.add('spread-reader');
   const illustration=document.createElement('div');illustration.className='spread-illustration';sheet.prepend(illustration);
+  const pageTurnSound=createPageTurnSound();
   let playTimer=null, narration=null;
   function stopPlaying(pauseAudio=true){if(pauseAudio)narration?.pause();clearInterval(playTimer);playTimer=null;play.textContent='▶';play.setAttribute('aria-label','Play automatic page turns');main.querySelector('#player-mode').textContent='Read at your own pace';}
   let chapter=Math.min(book.position||0,content.chapters.length-1), page=0, count=1, stride=0;
@@ -73,6 +75,7 @@ export function mountFlipbook({main, book, content, save, announce}) {
     if(direction>0 && page===count-1 && chapter===content.chapters.length-1) {
       book.finished=true;stopPlaying();persist();paint();announce('Book finished. Well done!');return;
     }
+    pageTurnSound.play();
     book.finished=false;turning=true;paint();
     // A visual copy turns above the real text; it is excluded from accessibility.
     overlay=sheet.cloneNode(true);overlay.removeAttribute('id');
@@ -99,14 +102,14 @@ export function mountFlipbook({main, book, content, save, announce}) {
     cancelTurn();if(!disposed)paint();
   }
   play.onclick=()=>{narration.pause();if(playTimer){stopPlaying();return;}play.textContent='Ⅱ';play.setAttribute('aria-label','Pause automatic page turns');main.querySelector('#player-mode').textContent='Auto-turn · 12 seconds per page';playTimer=setInterval(()=>turn(1),12000);};
-  seek.oninput=()=>{stopPlaying();cancelTurn();page=Number(seek.value)-1;book.finished=false;paint();persist();};
+  seek.oninput=()=>{if(Number(seek.value)-1!==page)pageTurnSound.play();stopPlaying();cancelTurn();page=Number(seek.value)-1;book.finished=false;paint();persist();};
   const fullscreen=main.querySelector('#reader-fullscreen');
   fullscreen.hidden=!document.fullscreenEnabled;
   fullscreen.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await player.requestFullscreen();}catch{announce('Fullscreen is unavailable in this browser.');}};
   const fullscreenChanged=()=>fullscreen.setAttribute('aria-label',document.fullscreenElement?'Exit fullscreen':'Enter fullscreen');
   document.addEventListener('fullscreenchange',fullscreenChanged);
   previous.onclick=()=>{stopPlaying();turn(-1);};next.onclick=()=>{stopPlaying();turn(1);};
-  chapterSelect.onchange=()=>{stopPlaying();cancelTurn();book.finished=false;loadChapter(Number(chapterSelect.value),0);};
+  chapterSelect.onchange=()=>{pageTurnSound.play();stopPlaying();cancelTurn();book.finished=false;loadChapter(Number(chapterSelect.value),0);};
   main.querySelector('#reader-size').onchange=event=>{
     cancelTurn();book.textSize=Number(event.target.value);reader.style.fontSize=book.textSize+'px';layout(book.pageFraction||0);
   };
@@ -124,5 +127,5 @@ export function mountFlipbook({main, book, content, save, announce}) {
   // Decode before measuring columns so illustrations cannot move the bookmark.
   const initialFraction=book.pageFraction||0;
   loadChapter(chapter,initialFraction).then(()=>{if(!disposed)observer.observe(windowEl);});
-  return ()=>{coach.dispose();stopPlaying();narration.dispose();document.removeEventListener('fullscreenchange',fullscreenChanged);disposed=true;generation++;observer.disconnect();cancelAnimationFrame(resizeFrame);cancelTurn();};
+  return ()=>{pageTurnSound.dispose();coach.dispose();stopPlaying();narration.dispose();document.removeEventListener('fullscreenchange',fullscreenChanged);disposed=true;generation++;observer.disconnect();cancelAnimationFrame(resizeFrame);cancelTurn();};
 }

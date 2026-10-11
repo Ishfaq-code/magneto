@@ -57,7 +57,10 @@ metadata are not committed.
    ```
 
 Open the book. A **Recorded narration** audio control appears only on a uniquely matched passage.
-Playback is explicit, stops automatic page turning, and pauses on navigation or teacher interaction.
+Narration starts automatically when a matched page opens, stops automatic page turning, and pauses
+on navigation or teacher interaction. If the browser blocks autoplay, the player prompts the reader
+to press play. Page turns include a short, locally synthesized paper rustle. Native audio controls
+remain available for pausing and volume adjustment.
 The existing decision-preparation request starts when the passage opens, so it can run while audio
 plays. There is no model call or ElevenLabs request at playback time. Audio does not automatically
 advance the story or approve a teaching activity. Pages without audio remain readable.
