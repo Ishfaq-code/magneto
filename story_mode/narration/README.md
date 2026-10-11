@@ -107,3 +107,34 @@ credentials, interrupted builds, corrupt files, manifest matching and safe local
 verification used synthetic silence to check decoding, duration and pause-on-navigation. The full Peter Rabbit script has also been generated through the live ElevenLabs endpoint and
 checked for page alignment and browser playback. Pronunciation and performance still merit a human
 listening review.
+
+## Peter Rabbit interaction pack
+
+Generate reusable feedback in the same configured narrator voice:
+
+```sh
+npm run build:narration -- story_mode/narration/peter-rabbit-interactions.json
+```
+
+The eight clips are cached separately under `web/learn/narration/peter-rabbit-interactions/`.
+The source reuses narration format 1.0; `match_text` values are reserved interaction keys,
+not book passage excerpts. A future interaction playback adapter should select by exact clip ID,
+not search story text. This pack is generated audio, not a connected MCP playback feature.
+
+| Clip ID | Intended trigger | Intended next state |
+| --- | --- | --- |
+| success-independent | Accepted teacher-confirmed independent outcome | Offer return to story |
+| success-assisted | Accepted teacher-confirmed assisted outcome | Offer return to story |
+| retry | Explicit confirmed incorrect attempt | Stay in exercise; allow retry |
+| offer-help | Explicit help request | Stay in exercise; then use the exercise-specific hint |
+| skip | Explicit skip / try-later decision | Offer return to story |
+| return-to-story | Explicit resume after feedback | Resume story |
+| invite | Approved exercise introduction | Present the exercise-specific prompt |
+| patient-wait | Explicit encouragement request | Keep waiting; never infer failure from silence |
+
+The controller currently accepts teacher outcomes independent, with_help and try_later; it does
+not yet have an incorrect-attempt event. Do not map try_later or an unconfirmed transcript to retry.
+These triggers are the intended playback mapping, not new accepted controller actions. The model
+proposes the exercise; deterministic code checks phase, session revision and confirmed outcomes.
+The existing teacher-controlled resume rule remains unchanged. Look-ahead exercise generation,
+live generated prompts and automatic feedback playback are separate integration work.
